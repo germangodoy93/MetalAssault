@@ -1,0 +1,1678 @@
+<title>Metal Assault</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg:#0b0c10;
+    --surface:#14161d;
+    --surface-2:#1b1e28;
+    --surface-3:#22262f;
+    --line:#282c38;
+    --text:#eef0f4;
+    --text-dim:#9aa2b6;
+    --text-faint:#666e82;
+    --gold:#e8b923;
+    --gold-dim:#a9860f;
+    --arcane:#8b6cf2;
+    --arcane-dim:#5d4aa8;
+    --success:#46c98a;
+    --danger:#ef5a53;
+    --shadow: 0 12px 32px rgba(0,0,0,.45);
+    color-scheme: dark;
+  }
+  :root:not([data-theme="light"]) { }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#eef0f4;
+      --surface:#ffffff;
+      --surface-2:#f5f6f9;
+      --surface-3:#eceef3;
+      --line:#dde1ea;
+      --text:#15171f;
+      --text-dim:#565f76;
+      --text-faint:#8b93a8;
+      --gold:#b3860a;
+      --gold-dim:#8a6606;
+      --arcane:#7455e0;
+      --arcane-dim:#5638b8;
+      --success:#1f9a63;
+      --danger:#d63f38;
+      --shadow: 0 8px 24px rgba(30,34,50,.10);
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"]{
+      --bg:#eef0f4;
+      --surface:#ffffff;
+      --surface-2:#f5f6f9;
+      --surface-3:#eceef3;
+      --line:#dde1ea;
+      --text:#15171f;
+      --text-dim:#565f76;
+      --text-faint:#8b93a8;
+      --gold:#b3860a;
+      --gold-dim:#8a6606;
+      --arcane:#7455e0;
+      --arcane-dim:#5638b8;
+      --success:#1f9a63;
+      --danger:#d63f38;
+      --shadow: 0 8px 24px rgba(30,34,50,.10);
+      color-scheme: light;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0b0c10; --surface:#14161d; --surface-2:#1b1e28; --surface-3:#22262f;
+    --line:#282c38; --text:#eef0f4; --text-dim:#9aa2b6; --text-faint:#666e82;
+    --gold:#e8b923; --gold-dim:#a9860f; --arcane:#8b6cf2; --arcane-dim:#5d4aa8;
+    --success:#46c98a; --danger:#ef5a53; --shadow: 0 12px 32px rgba(0,0,0,.45);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    padding-inline:0;
+  }
+  h1,h2,h3,.disp{ font-family:'Rajdhani',system-ui,sans-serif; font-weight:700; text-wrap:balance; letter-spacing:.01em; }
+  .mono{ font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums; }
+  a{ color:var(--gold); }
+  button{ font-family:inherit; }
+  ::selection{ background:var(--gold); color:#161616; }
+
+  .wrap{ max-width:1120px; margin:0 auto; padding-inline:20px; }
+
+  /* header */
+  header.top{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:40;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brandbar{ display:flex; align-items:center; gap:14px; padding-block:14px; }
+  .brandbar img{ width:46px; height:46px; border-radius:10px; object-fit:cover; box-shadow:var(--shadow); flex:none; }
+  .brandbar .word{ display:flex; flex-direction:column; line-height:1; }
+  .brandbar .word .name{ font-size:22px; letter-spacing:.04em; text-transform:uppercase; }
+  .brandbar .word .tag{ font-size:11.5px; color:var(--text-dim); letter-spacing:.08em; text-transform:uppercase; margin-top:4px; font-family:'IBM Plex Mono',monospace; }
+  .brandbar .spacer{ flex:1; }
+  .themebtn{
+    border:1px solid var(--line); background:var(--surface-2); color:var(--text-dim);
+    width:36px; height:36px; border-radius:9px; cursor:pointer; display:grid; place-items:center;
+    font-size:16px;
+  }
+  .themebtn:hover{ color:var(--text); border-color:var(--gold); }
+
+  nav.tabs{ display:flex; gap:4px; overflow-x:auto; padding-bottom:10px; scrollbar-width:none; }
+  nav.tabs::-webkit-scrollbar{ display:none; }
+  nav.tabs button{
+    flex:none; background:transparent; border:1px solid transparent; color:var(--text-dim);
+    padding:8px 14px; border-radius:8px; font-size:13.5px; font-weight:600; cursor:pointer;
+    text-transform:uppercase; letter-spacing:.03em; white-space:nowrap;
+  }
+  nav.tabs button:hover{ color:var(--text); background:var(--surface-2); }
+  nav.tabs button.active{ color:#161616; background:var(--gold); }
+
+  main{ padding-block:26px 60px; }
+  .panel{ display:none; animation:fade .25s ease; }
+  .panel.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+  /* hero */
+  .hero{
+    display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center;
+    background:linear-gradient(155deg, var(--surface) 0%, var(--surface-2) 100%);
+    border:1px solid var(--line); border-radius:18px; padding:28px; margin-bottom:22px;
+    box-shadow:var(--shadow);
+  }
+  @media (max-width:720px){ .hero{ grid-template-columns:1fr; } }
+  .hero h1{ font-size:clamp(28px,5vw,42px); margin:0 0 10px; text-transform:uppercase; }
+  .hero h1 span{ color:var(--gold); }
+  .hero p{ color:var(--text-dim); font-size:15px; max-width:46ch; margin:0 0 18px; }
+  .hero .stats{ display:flex; gap:22px; flex-wrap:wrap; }
+  .hero .stat b{ display:block; font-family:'Rajdhani',sans-serif; font-size:26px; color:var(--gold); }
+  .hero .stat span{ font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; }
+  .hero-art{ position:relative; aspect-ratio:1/1; border-radius:14px; overflow:hidden; border:1px solid var(--line); background:var(--surface-3); display:grid; place-items:center; }
+  .hero-art img{ width:70%; height:70%; object-fit:contain; filter:drop-shadow(0 10px 24px rgba(0,0,0,.4)); }
+
+  /* cards / grid */
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px;
+  }
+  .card h3{ margin:0 0 6px; font-size:19px; text-transform:uppercase; }
+  .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .between{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+
+  .pill{
+    display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600;
+    padding:4px 10px; border-radius:999px; text-transform:uppercase; letter-spacing:.04em;
+    border:1px solid var(--line); color:var(--text-dim); background:var(--surface-2);
+  }
+  .pill.open{ color:var(--success); border-color:color-mix(in srgb, var(--success) 40%, var(--line)); }
+  .pill.live{ color:var(--gold); border-color:color-mix(in srgb, var(--gold) 40%, var(--line)); }
+  .pill.done{ color:var(--arcane); border-color:color-mix(in srgb, var(--arcane) 40%, var(--line)); }
+
+  .muted{ color:var(--text-dim); font-size:13.5px; }
+  .rules-box{ background:var(--surface-2); border:1px dashed var(--line); border-radius:10px; padding:10px 12px; font-size:13px; color:var(--text-dim); white-space:pre-wrap; margin-top:8px; max-height:110px; overflow-y:auto; }
+
+  /* section heading */
+  .sechead{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  .sechead h2{ font-size:24px; text-transform:uppercase; margin:0; }
+  .sechead .sub{ color:var(--text-dim); font-size:13px; }
+
+  /* buttons */
+  .btn{
+    border:1px solid var(--line); background:var(--surface-2); color:var(--text);
+    padding:9px 16px; border-radius:9px; font-weight:600; font-size:13.5px; cursor:pointer;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .btn:hover{ border-color:var(--gold); }
+  .btn.primary{ background:var(--gold); border-color:var(--gold); color:#161616; }
+  .btn.primary:hover{ filter:brightness(1.08); }
+  .btn.ghost{ background:transparent; }
+  .btn.danger{ color:var(--danger); }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .btn.small{ padding:6px 11px; font-size:12px; }
+
+  /* forms */
+  form.card{ display:flex; flex-direction:column; gap:12px; }
+  label{ font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim); display:block; margin-bottom:5px; }
+  input,select,textarea{
+    width:100%; background:var(--surface-2); border:1px solid var(--line); color:var(--text);
+    padding:10px 12px; border-radius:8px; font-size:14px; font-family:inherit;
+  }
+  input:focus,select:focus,textarea:focus{ outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold); }
+  textarea{ resize:vertical; min-height:70px; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:560px){ .field-row{ grid-template-columns:1fr; } }
+  .formgrid{ display:grid; grid-template-columns:1.1fr .9fr; gap:18px; align-items:start; }
+  @media (max-width:820px){ .formgrid{ grid-template-columns:1fr; } }
+
+  /* bracket */
+  .bracket-wrap{ overflow-x:auto; padding-bottom:6px; }
+  .bracket{ display:flex; gap:34px; min-width:max-content; padding:6px 2px 18px; }
+  .round-col{ display:flex; flex-direction:column; justify-content:space-around; gap:16px; min-width:210px; }
+  .round-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); text-align:center; margin-bottom:6px; font-family:'IBM Plex Mono',monospace; }
+  .match{ background:var(--surface); border:1px solid var(--line); border-radius:10px; overflow:hidden; position:relative; }
+  .match.decided{ border-color:color-mix(in srgb, var(--gold) 35%, var(--line)); }
+  .slot{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; font-size:13.5px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .slot:last-child{ border-bottom:none; }
+  .slot:hover:not(.tbd):not(.winner){ background:var(--surface-2); }
+  .slot.winner{ color:var(--gold); font-weight:700; }
+  .slot.winner::after{ content:"✓"; font-size:13px; font-weight:700; }
+  .slot.loser{ color:var(--text-faint); text-decoration:line-through; }
+  .slot.tbd{ color:var(--text-faint); font-style:italic; cursor:default; }
+  .champion-banner{
+    margin-top:16px; padding:16px 20px; border-radius:12px; text-align:center;
+    background:linear-gradient(120deg, color-mix(in srgb, var(--gold) 18%, var(--surface)), var(--surface));
+    border:1px solid var(--gold);
+  }
+  .champion-banner b{ color:var(--gold); font-size:20px; font-family:'Rajdhani',sans-serif; text-transform:uppercase; }
+
+  /* leaderboard table */
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint); padding:8px 12px; border-bottom:1px solid var(--line); }
+  td{ padding:10px 12px; border-bottom:1px solid var(--line); }
+  tr:last-child td{ border-bottom:none; }
+  td.num,th.num{ text-align:right; font-family:'IBM Plex Mono',monospace; }
+  .rank{ display:inline-grid; place-items:center; width:24px; height:24px; border-radius:6px; background:var(--surface-2); font-size:12px; font-weight:700; font-family:'IBM Plex Mono',monospace; }
+  tr:nth-child(1) .rank{ background:color-mix(in srgb, var(--gold) 30%, var(--surface-2)); color:var(--gold); }
+  tr:nth-child(2) .rank{ background:color-mix(in srgb, #c8ccd6 30%, var(--surface-2)); }
+  tr:nth-child(3) .rank{ background:color-mix(in srgb, #b5793a 30%, var(--surface-2)); }
+  .table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
+  .table-wrap table{ min-width:480px; }
+
+  /* posts */
+  .post{ border-left:3px solid var(--arcane); }
+  .post .meta{ font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; font-family:'IBM Plex Mono',monospace; }
+  .post p{ color:var(--text-dim); font-size:14px; margin:8px 0 0; white-space:pre-wrap; }
+  .post-gallery{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .post-gallery a{ display:block; width:160px; height:160px; border-radius:10px; overflow:hidden; border:1px solid var(--line); flex:none; }
+  .post-gallery img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .2s; }
+  .post-gallery a:hover img{ transform:scale(1.05); }
+  @media (max-width:480px){
+    .post-gallery a{ width:calc(50% - 5px); height:auto; aspect-ratio:1/1; }
+  }
+
+  /* social */
+  .social-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+  .social-card{ display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text); }
+  .social-card .ic{ width:42px; height:42px; border-radius:10px; display:grid; place-items:center; background:var(--surface-2); border:1px solid var(--line); font-size:18px; flex:none; }
+  .social-card b{ display:block; font-size:14px; }
+  .social-card span{ font-size:12px; color:var(--text-faint); }
+  .social-card:hover .ic{ border-color:var(--gold); }
+
+  .empty{ text-align:center; padding:40px 20px; color:var(--text-faint); }
+  .empty b{ display:block; color:var(--text-dim); margin-bottom:4px; }
+
+  .toast{
+    position:fixed; bottom:calc(18px + env(safe-area-inset-bottom,0px)); left:50%; transform:translateX(-50%) translateY(12px);
+    background:var(--surface-3); border:1px solid var(--gold); color:var(--text); padding:10px 18px; border-radius:10px;
+    font-size:13.5px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:80;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  select.tselect{ max-width:340px; }
+
+  footer{ border-top:1px solid var(--line); padding:22px 0 40px; margin-top:20px; }
+  footer .wrap{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  footer p{ color:var(--text-faint); font-size:12px; margin:0; }
+</style>
+
+<div id="toast" class="toast"></div>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brandbar">
+      <img src="logo.jpg" alt="Metal Assault" />
+      <div class="word">
+        <div class="name">Metal Assault</div>
+        <div class="tag">Torneos Clash Royale</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="themebtn" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="inicio" class="active">Inicio</button>
+      <button data-tab="torneos">Torneos</button>
+      <button data-tab="registro">Registro</button>
+      <button data-tab="sorteo">Sorteo &amp; Bracket</button>
+      <button data-tab="clasificacion">Clasificación</button>
+      <button data-tab="publicaciones">Publicaciones</button>
+      <button data-tab="redes">Redes</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- INICIO -->
+  <section class="panel active" id="panel-inicio">
+    <div class="hero">
+      <div>
+        <h1>Batallas <span>organizadas</span>.<br/>Gloria confirmada.</h1>
+        <p>Metal Assault centraliza el registro, sorteo y seguimiento de torneos de Clash Royale: inscripciones, reglas por torneo, llaves de eliminación dinámicas y la clasificación de la comunidad.</p>
+        <div class="row">
+          <button class="btn primary" data-goto="torneos">Ver torneos</button>
+          <button class="btn ghost" data-goto="registro">Inscribirme</button>
+        </div>
+        <div class="stats" style="margin-top:20px;">
+          <div class="stat"><b id="statTorneos">0</b><span>Torneos</span></div>
+          <div class="stat"><b id="statJugadores">0</b><span>Jugadores</span></div>
+          <div class="stat"><b id="statPartidas">0</b><span>Partidas jugadas</span></div>
+          <div class="stat"><b id="statAbiertos">0</b><span>Abiertos ahora</span></div>
+        </div>
+      </div>
+      <div class="hero-art"><img src="logo.jpg" alt="" /></div>
+    </div>
+
+    <div class="sechead"><h2>Torneos abiertos</h2><span class="sub">Inscripciones activas</span></div>
+    <div class="grid" id="inicioAbiertos"></div>
+  </section>
+
+  <!-- TORNEOS -->
+  <section class="panel" id="panel-torneos">
+    <div class="formgrid">
+      <div>
+        <div class="sechead"><h2>Torneos</h2><span class="sub" id="torneosCount"></span></div>
+        <div class="grid" id="torneosGrid"></div>
+      </div>
+      <form class="card" id="formTorneo">
+        <input type="hidden" id="tEditId" value="" />
+        <h3 style="margin-bottom:2px;" id="tFormTitle">Crear torneo</h3>
+        <p class="muted" style="margin:0 0 4px;" id="tFormHint">Define el tipo y las reglas antes de abrir inscripciones.</p>
+        <div>
+          <label for="tName">Nombre del torneo</label>
+          <input id="tName" required placeholder="Ej. Copa Metal Assault #4" />
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="tType">Tipo de torneo</label>
+            <select id="tType">
+              <option>1v1 Clásico</option>
+              <option>2v2 Dúo</option>
+              <option>Draft (elección de cartas)</option>
+              <option>Guerra de Clanes</option>
+              <option>Torneo de niveles topados</option>
+            </select>
+          </div>
+          <div>
+            <label for="tMode">Modalidad</label>
+            <select id="tMode">
+              <option value="individual">Individual (1 vs 1)</option>
+              <option value="equipos">Equipos aleatorios (2v2)</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="tFormat">Formato</label>
+            <select id="tFormat">
+              <option value="eliminacion">Eliminación simple</option>
+              <option value="liga">Liga · todos contra todos (clasifican 2)</option>
+            </select>
+          </div>
+          <div>
+            <label for="tMax">Máx. participantes</label>
+            <input id="tMax" type="number" min="2" max="128" value="8" />
+          </div>
+        </div>
+        <div>
+          <label for="tDate">Fecha</label>
+          <input id="tDate" type="date" />
+        </div>
+        <div>
+          <label for="tRules">Reglas del torneo</label>
+          <textarea id="tRules" placeholder="Formato Mejor de 3, nivel de cartas topado a 11, mazo abierto, horario 8pm COT, walkover a los 10 min sin presentarse…"></textarea>
+        </div>
+        <div>
+          <label for="tKey" id="tKeyLabel">Clave para eliminar el torneo</label>
+          <input id="tKey" type="password" autocomplete="new-password" placeholder="Elige una clave — la pedirá al momento de eliminar" required />
+        </div>
+        <div class="row">
+          <button class="btn primary" type="submit" id="tFormSubmit">Crear torneo</button>
+          <button class="btn ghost" type="button" id="tFormCancel" hidden>Cancelar edición</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- REGISTRO -->
+  <section class="panel" id="panel-registro">
+    <div class="sechead"><h2>Registro de jugadores</h2><span class="sub">Inscríbete a un torneo abierto</span></div>
+    <div class="formgrid">
+      <form class="card" id="formRegistro">
+        <div>
+          <label for="rTorneo">Torneo</label>
+          <select id="rTorneo" class="tselect"></select>
+        </div>
+        <div class="field-row">
+          <div>
+            <label for="rNombre">Nombre / Usuario</label>
+            <input id="rNombre" required placeholder="Ej. GermanCR" />
+          </div>
+          <div>
+            <label for="rTag">Tag de Clash Royale</label>
+            <input id="rTag" required placeholder="#ABC123XY" />
+          </div>
+        </div>
+        <div>
+          <label for="rClan">Clan (opcional)</label>
+          <input id="rClan" placeholder="Ej. Metal Assault CR" />
+        </div>
+        <button class="btn primary" type="submit">Confirmar inscripción</button>
+        <p class="muted" id="regHint"></p>
+      </form>
+      <div>
+        <div class="between" style="margin-bottom:10px;">
+          <h3 style="margin:0;" id="regListTitle">Inscritos</h3>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Jugador</th><th>Tag</th><th>Clan</th><th></th></tr></thead>
+            <tbody id="regTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SORTEO / BRACKET -->
+  <section class="panel" id="panel-sorteo">
+    <div class="sechead">
+      <h2>Sorteo &amp; Llave dinámica</h2>
+      <span class="sub">Elige un torneo, realiza el sorteo aleatorio y avanza ganadores</span>
+    </div>
+    <div class="row" style="margin-bottom:16px;">
+      <select id="sTorneo" class="tselect" style="max-width:360px;"></select>
+      <button class="btn primary" id="btnSorteo">🎲 Realizar sorteo aleatorio</button>
+      <button class="btn ghost danger" id="btnResetBracket">Reiniciar llave</button>
+    </div>
+    <div id="sorteoInfo" class="muted" style="margin-bottom:10px;"></div>
+    <div id="bracketArea"></div>
+  </section>
+
+  <!-- CLASIFICACION -->
+  <section class="panel" id="panel-clasificacion">
+    <div class="sechead"><h2>Clasificación general</h2><span class="sub">Victorias acumuladas en todos los torneos</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:50px;">#</th><th>Jugador</th><th>Tag</th><th class="num">Victorias</th><th class="num">Derrotas</th><th class="num">Torneos ganados</th></tr></thead>
+        <tbody id="leaderTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PUBLICACIONES -->
+  <section class="panel" id="panel-publicaciones">
+    <div class="formgrid">
+      <div>
+        <div class="sechead"><h2>Publicaciones</h2><span class="sub">Anuncios de la comunidad</span></div>
+        <div style="display:flex; flex-direction:column; gap:12px;" id="postsList"></div>
+      </div>
+      <form class="card" id="formPost">
+        <h3 style="margin-bottom:2px;">Nueva publicación</h3>
+        <div>
+          <label for="pTitulo">Título</label>
+          <input id="pTitulo" required placeholder="Ej. ¡Se abren inscripciones!" />
+        </div>
+        <div>
+          <label for="pTorneo">Torneo relacionado (opcional)</label>
+          <select id="pTorneo"><option value="">— General —</option></select>
+        </div>
+        <div>
+          <label for="pCuerpo">Contenido</label>
+          <textarea id="pCuerpo" required placeholder="Escribe el anuncio para tu comunidad…"></textarea>
+        </div>
+        <div>
+          <label for="pImages">Imágenes (opcional, máx. 4)</label>
+          <input id="pImages" type="file" accept="image/*" multiple />
+          <p class="muted" id="pImagesHint" style="margin:6px 0 0; font-size:12px;"></p>
+        </div>
+        <button class="btn primary" type="submit" id="pSubmitBtn">Publicar</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- REDES -->
+  <section class="panel" id="panel-redes">
+    <div class="sechead"><h2>Redes sociales</h2><span class="sub">Síguenos y únete a la comunidad</span></div>
+    <div class="social-grid" id="socialGrid"></div>
+
+    <div class="sechead" style="margin-top:30px;"><h2 style="font-size:18px;">Editar enlaces</h2></div>
+    <form class="card" id="formSocial" style="max-width:560px;">
+      <div class="field-row">
+        <div><label for="sInstagram">Instagram</label><input id="sInstagram" placeholder="https://instagram.com/…" /></div>
+        <div><label for="sTiktok">TikTok</label><input id="sTiktok" placeholder="https://tiktok.com/@…" /></div>
+      </div>
+      <div class="field-row">
+        <div><label for="sYoutube">YouTube</label><input id="sYoutube" placeholder="https://youtube.com/@…" /></div>
+        <div><label for="sDiscord">Discord</label><input id="sDiscord" placeholder="https://discord.gg/…" /></div>
+      </div>
+      <div class="field-row">
+        <div><label for="sX">X / Twitter</label><input id="sX" placeholder="https://x.com/…" /></div>
+        <div><label for="sWhatsapp">WhatsApp</label><input id="sWhatsapp" placeholder="https://wa.me/…" /></div>
+      </div>
+      <button class="btn primary" type="submit">Guardar enlaces</button>
+    </form>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Metal Assault © <span id="year"></span> — Comunidad de Clash Royale</p>
+    <p class="mono">v1.0</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  /* ---------- theme toggle ---------- */
+  var root = document.documentElement;
+  (function initTheme(){
+    try{
+      var saved = localStorage.getItem('ma_theme');
+      if(saved) root.setAttribute('data-theme', saved);
+    }catch(e){}
+  })();
+  document.getElementById('themeToggle').addEventListener('click', function(){
+    var cur = root.getAttribute('data-theme');
+    var mql = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next;
+    if(!cur) next = mql ? 'light' : 'dark';
+    else if(cur === 'dark') next = 'light';
+    else next = 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('ma_theme', next); }catch(e){}
+  });
+
+  /* ---------- toast ---------- */
+  var toastEl = document.getElementById('toast');
+  var toastTimer;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- tabs ---------- */
+  var tabButtons = document.querySelectorAll('#tabs button');
+  function showTab(name){
+    tabButtons.forEach(function(b){ b.classList.toggle('active', b.dataset.tab === name); });
+    document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('active', p.id === 'panel-' + name); });
+    try{ localStorage.setItem('ma_tab', name); }catch(e){}
+    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  }
+  tabButtons.forEach(function(b){ b.addEventListener('click', function(){ showTab(b.dataset.tab); }); });
+  document.querySelectorAll('[data-goto]').forEach(function(b){
+    b.addEventListener('click', function(){ showTab(b.dataset.goto); });
+  });
+
+  /* ---------- id helper ---------- */
+  function uid(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+  }
+  function esc(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  /* Lightweight, deterministic obfuscation for the delete key — not
+     cryptographic, just avoids keeping the plain key sitting in the
+     stored document. Good enough for a friendly admin-only guard. */
+  function hashKey(s){
+    s = String(s || '').trim().toLowerCase();
+    var h = 5381;
+    for(var i = 0; i < s.length; i++){ h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; }
+    return 'k' + h.toString(36);
+  }
+  /* Master override: always works to delete any torneo, in case the
+     organizer forgets the one they set. Not shown per-tournament so it
+     doesn't leak in the stored doc — only lives here in the page code. */
+  var MASTER_DELETE_KEY = 'metalassault2026';
+  function fmtDate(iso){
+    if(!iso) return '';
+    try{ var d = new Date(iso); return d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}); }catch(e){ return iso; }
+  }
+
+  /* ================= DATA LAYER ================= */
+  var state = {
+    tournaments: [],
+    registrations: [],
+    teams: [],
+    matches: [],
+    posts: [],
+    social: {}
+  };
+
+  var db = null;
+  var LS_KEY = 'ma_store_v1';
+
+  function loadLocal(){
+    try{
+      var raw = localStorage.getItem(LS_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return null;
+  }
+  function saveLocal(){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  function seedExample(){
+    var t1 = uid();
+    var now = new Date().toISOString();
+    state.tournaments = [{
+      id: t1, name: 'Copa Metal Assault #1', type: '1v1 Clásico', mode: 'individual', format: 'eliminacion',
+      maxPlayers: 8, date: '', rules: 'Mejor de 3 · Nivel de cartas topado a 11 · Mazo abierto · Walkover a los 10 min sin presentarse.',
+      qualifiers: 2, status: 'abierto', createdAt: now
+    }];
+    state.registrations = [
+      {id: uid(), tournamentId: t1, name:'GermanCR', tag:'#2Y8LQ0', clan:'Metal Assault', createdAt: now},
+      {id: uid(), tournamentId: t1, name:'ShockWave', tag:'#8PPYR2', clan:'', createdAt: now},
+      {id: uid(), tournamentId: t1, name:'LavaHound', tag:'#QJ2CG9', clan:'Metal Assault', createdAt: now},
+      {id: uid(), tournamentId: t1, name:'MiniPekka', tag:'#V0R8LX', clan:'', createdAt: now}
+    ];
+    state.matches = [];
+    state.posts = [{
+      id: uid(), title:'¡Bienvenidos a Metal Assault!', body:'Este es el primer torneo de la comunidad. Regístrate en la pestaña Registro y prepárate para el sorteo. ¡Mucha suerte, jefes!',
+      tournamentId: t1, createdAt: now
+    }];
+    state.social = { instagram:'', tiktok:'', youtube:'', discord:'', x:'', whatsapp:'' };
+  }
+
+  function renderAll(){
+    renderInicio(); renderTorneos(); renderRegistroSelects(); renderRegistro();
+    renderSorteoSelect(); renderSorteoInfo(); renderBracket(); renderLeaderboard(); renderPosts(); renderSocial();
+    saveLocalIfNoDb();
+  }
+  function saveLocalIfNoDb(){ if(!db) saveLocal(); }
+
+  /* ---- init store: db capability with local fallback ---- */
+  var assetsApi = null;
+  async function initStore(){
+    try{
+      if(window.claude && window.claude.use){
+        db = await window.claude.use('db');
+      }
+    }catch(e){ db = null; }
+    try{
+      if(window.claude && window.claude.use){
+        assetsApi = await window.claude.use('assets');
+      }
+    }catch(e){ assetsApi = null; }
+
+    if(!db){
+      var local = loadLocal();
+      if(local && local.tournaments && local.tournaments.length){
+        state = local;
+      } else {
+        seedExample();
+        saveLocal();
+      }
+      renderAll();
+      return;
+    }
+
+    // db available: subscribe to collections
+    db.collection('tournaments').onSnapshot(function(snap){
+      state.tournaments = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      state.tournaments.sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
+      renderAll();
+    }, function(){ /* silent */ });
+
+    db.collection('registrations').onSnapshot(function(snap){
+      state.registrations = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      renderAll();
+    }, function(){});
+
+    db.collection('matches').onSnapshot(function(snap){
+      state.matches = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      renderAll();
+    }, function(){});
+
+    db.collection('teams').onSnapshot(function(snap){
+      state.teams = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      renderAll();
+    }, function(){});
+
+    db.collection('posts').onSnapshot(function(snap){
+      state.posts = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      state.posts.sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
+      renderAll();
+    }, function(){});
+
+    db.doc('social/links').onSnapshot(function(snap){
+      state.social = snap.exists ? snap.data() : {};
+      renderAll();
+    }, function(){});
+
+    // seed example data into db once if empty (best-effort, ignore failures)
+    setTimeout(async function(){
+      try{
+        var snap = await db.collection('tournaments').limit(1).get();
+        if(snap.empty){
+          seedExample();
+          var tid = state.tournaments[0].id;
+          var t = state.tournaments[0];
+          await db.collection('tournaments').doc(tid).set({
+            name:t.name, type:t.type, mode:t.mode, format:t.format, maxPlayers:t.maxPlayers, date:t.date,
+            rules:t.rules, qualifiers:t.qualifiers, status:t.status, createdAt:t.createdAt
+          });
+          for(var i=0;i<state.registrations.length;i++){
+            var r = state.registrations[i];
+            await db.collection('registrations').doc(r.id).set({
+              tournamentId:r.tournamentId, name:r.name, tag:r.tag, clan:r.clan, createdAt:r.createdAt
+            });
+          }
+          for(var j=0;j<state.posts.length;j++){
+            var p = state.posts[j];
+            await db.collection('posts').doc(p.id).set({
+              title:p.title, body:p.body, tournamentId:p.tournamentId||'', createdAt:p.createdAt
+            });
+          }
+        }
+      }catch(e){ /* best-effort seed */ }
+    }, 500);
+  }
+
+  /* ================= DATA MUTATIONS ================= */
+  async function addTournament(t){
+    if(db){
+      try{ await db.collection('tournaments').add(t); return; }catch(e){ toast('No se pudo guardar el torneo.'); return; }
+    }
+    t.id = uid();
+    state.tournaments.unshift(t);
+    renderAll();
+  }
+
+  async function addRegistration(r){
+    if(db){
+      try{ await db.collection('registrations').add(r); return true; }catch(e){ toast('No se pudo registrar.'); return false; }
+    }
+    r.id = uid();
+    state.registrations.push(r);
+    renderAll();
+    return true;
+  }
+  async function removeRegistration(id){
+    if(db){ try{ await db.collection('registrations').doc(id).delete(); }catch(e){} return; }
+    state.registrations = state.registrations.filter(function(r){ return r.id !== id; });
+    renderAll();
+  }
+
+  async function setMatch(id, data){
+    if(db){
+      try{ await db.collection('matches').doc(id).set(data); }catch(e){ toast('No se pudo guardar la llave.'); }
+      return;
+    }
+    var idx = state.matches.findIndex(function(m){ return m.id === id; });
+    var full = Object.assign({id:id}, data);
+    if(idx >= 0) state.matches[idx] = full; else state.matches.push(full);
+    renderAll();
+  }
+  async function updateMatch(id, data){
+    if(db){
+      try{ await db.collection('matches').doc(id).update(data); }catch(e){ toast('No se pudo actualizar.'); }
+      return;
+    }
+    var idx = state.matches.findIndex(function(m){ return m.id === id; });
+    if(idx >= 0) Object.assign(state.matches[idx], data);
+    renderAll();
+  }
+  async function deleteMatchesFor(tournamentId){
+    var toDelete = state.matches.filter(function(m){ return m.tournamentId === tournamentId; });
+    if(db){
+      for(var i=0;i<toDelete.length;i++){
+        try{ await db.collection('matches').doc(toDelete[i].id).delete(); }catch(e){}
+      }
+      return;
+    }
+    state.matches = state.matches.filter(function(m){ return m.tournamentId !== tournamentId; });
+    renderAll();
+  }
+  async function setTeam(id, data){
+    if(db){
+      try{ await db.collection('teams').doc(id).set(data); }catch(e){ toast('No se pudo guardar el equipo.'); }
+      return;
+    }
+    var idx = state.teams.findIndex(function(x){ return x.id === id; });
+    var full = Object.assign({id:id}, data);
+    if(idx >= 0) state.teams[idx] = full; else state.teams.push(full);
+    renderAll();
+  }
+  async function deleteTeamsFor(tournamentId){
+    var toDelete = state.teams.filter(function(x){ return x.tournamentId === tournamentId; });
+    if(db){
+      for(var i=0;i<toDelete.length;i++){
+        try{ await db.collection('teams').doc(toDelete[i].id).delete(); }catch(e){}
+      }
+      return;
+    }
+    state.teams = state.teams.filter(function(x){ return x.tournamentId !== tournamentId; });
+    renderAll();
+  }
+
+  async function updateTournament(id, data){
+    if(db){ try{ await db.collection('tournaments').doc(id).update(data); }catch(e){} return; }
+    var t = state.tournaments.find(function(t){ return t.id === id; });
+    if(t) Object.assign(t, data);
+    renderAll();
+  }
+
+  async function deleteRegistrationsFor(tournamentId){
+    var toDelete = state.registrations.filter(function(r){ return r.tournamentId === tournamentId; });
+    if(db){
+      for(var i=0;i<toDelete.length;i++){
+        try{ await db.collection('registrations').doc(toDelete[i].id).delete(); }catch(e){}
+      }
+      return;
+    }
+    state.registrations = state.registrations.filter(function(r){ return r.tournamentId !== tournamentId; });
+    renderAll();
+  }
+
+  async function unlinkPostsFor(tournamentId){
+    var toUnlink = state.posts.filter(function(p){ return p.tournamentId === tournamentId; });
+    if(db){
+      for(var i=0;i<toUnlink.length;i++){
+        try{ await db.collection('posts').doc(toUnlink[i].id).update({tournamentId:''}); }catch(e){}
+      }
+      return;
+    }
+    state.posts.forEach(function(p){ if(p.tournamentId === tournamentId) p.tournamentId = ''; });
+    renderAll();
+  }
+
+  async function deleteTournamentCascade(id){
+    await deleteMatchesFor(id);
+    await deleteTeamsFor(id);
+    await deleteRegistrationsFor(id);
+    await unlinkPostsFor(id);
+    if(db){
+      try{ await db.collection('tournaments').doc(id).delete(); }catch(e){ toast('No se pudo eliminar el torneo.'); }
+      return;
+    }
+    state.tournaments = state.tournaments.filter(function(t){ return t.id !== id; });
+    renderAll();
+  }
+
+  async function addPost(p){
+    if(db){ try{ await db.collection('posts').add(p); }catch(e){ toast('No se pudo publicar.'); } return; }
+    p.id = uid();
+    state.posts.unshift(p);
+    renderAll();
+  }
+
+  async function saveSocial(data){
+    if(db){ try{ await db.doc('social/links').set(data); toast('Enlaces guardados.'); }catch(e){ toast('No se pudo guardar.'); } return; }
+    state.social = data;
+    renderAll();
+    toast('Enlaces guardados.');
+  }
+
+  /* ================= RENDER: INICIO ================= */
+  function renderInicio(){
+    document.getElementById('statTorneos').textContent = state.tournaments.length;
+    var players = {};
+    state.registrations.forEach(function(r){ players[r.tag] = true; });
+    document.getElementById('statJugadores').textContent = Object.keys(players).length;
+    var jugadas = state.matches.filter(function(m){ return m.winnerId && m.winnerId !== 'BYE'; }).length;
+    document.getElementById('statPartidas').textContent = jugadas;
+    var abiertos = state.tournaments.filter(function(t){ return t.status === 'abierto'; });
+    document.getElementById('statAbiertos').textContent = abiertos.length;
+
+    var box = document.getElementById('inicioAbiertos');
+    if(!abiertos.length){
+      box.innerHTML = '<div class="empty" style="grid-column:1/-1;"><b>No hay torneos abiertos</b>Crea uno nuevo en la pestaña Torneos.</div>';
+      return;
+    }
+    box.innerHTML = abiertos.map(tournamentCard).join('');
+  }
+
+  function statusPill(status){
+    if(status === 'abierto') return '<span class="pill open">● Abierto</span>';
+    if(status === 'en curso') return '<span class="pill live">● En curso</span>';
+    return '<span class="pill done">● Finalizado</span>';
+  }
+
+  function tournamentCard(t){
+    var count = state.registrations.filter(function(r){ return r.tournamentId === t.id; }).length;
+    return '<div class="card">' +
+      '<div class="between"><h3>' + esc(t.name) + '</h3>' + statusPill(t.status) + '</div>' +
+      '<div class="row" style="margin:4px 0 8px;"><span class="pill">' + esc(t.type) + '</span><span class="pill">' + fmtLabel(t.format) + '</span>' + modePill(t) + '</div>' +
+      '<p class="muted">' + count + ' / ' + t.maxPlayers + ' inscritos' + (t.date ? ' · ' + fmtDate(t.date) : '') + '</p>' +
+      (t.rules ? '<div class="rules-box">' + esc(t.rules) + '</div>' : '') +
+      '</div>';
+  }
+  function fmtLabel(format){
+    return format === 'liga' ? 'Liga · todos contra todos' : 'Eliminación simple';
+  }
+  function modePill(t){
+    return t.mode === 'equipos' ? '<span class="pill">👥 Equipos 2v2</span>' : '';
+  }
+
+  /* ================= RENDER: TORNEOS ================= */
+  function renderTorneos(){
+    document.getElementById('torneosCount').textContent = state.tournaments.length + ' registrados';
+    var grid = document.getElementById('torneosGrid');
+    if(!state.tournaments.length){
+      grid.innerHTML = '<div class="empty"><b>Aún no hay torneos</b>Usa el formulario para crear el primero.</div>';
+      return;
+    }
+    grid.innerHTML = state.tournaments.map(function(t){
+      var count = state.registrations.filter(function(r){ return r.tournamentId === t.id; }).length;
+      return '<div class="card">' +
+        '<div class="between"><h3>' + esc(t.name) + '</h3>' + statusPill(t.status) + '</div>' +
+        '<div class="row" style="margin:4px 0 8px;"><span class="pill">' + esc(t.type) + '</span><span class="pill">' + fmtLabel(t.format) + '</span>' + modePill(t) + '</div>' +
+        '<p class="muted">' + count + ' / ' + t.maxPlayers + ' inscritos' + (t.date ? ' · ' + fmtDate(t.date) : '') + '</p>' +
+        (t.rules ? '<div class="rules-box">' + esc(t.rules) + '</div>' : '<p class="muted">Sin reglas específicas.</p>') +
+        '<div class="row" style="margin-top:12px;">' +
+          '<button class="btn small" data-cycle="' + t.id + '">Cambiar estado</button>' +
+          '<button class="btn small ghost" data-goto-sorteo="' + t.id + '">Ir al sorteo</button>' +
+          '<button class="btn small ghost" data-edit="' + t.id + '">Editar</button>' +
+          (armedDeleteId !== t.id ? '<button class="btn small ghost danger" data-delete="' + t.id + '">Eliminar</button>' : '') +
+        '</div>' +
+        (armedDeleteId === t.id ?
+          '<div style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);">' +
+            '<div class="row">' +
+              '<input type="text" class="mono" data-delkey-input="' + t.id + '" placeholder="Clave del torneo" style="max-width:170px;" autocomplete="off" autocapitalize="off" spellcheck="false" />' +
+              '<button class="btn small danger" data-confirm-delete="' + t.id + '" style="background:var(--danger); border-color:var(--danger); color:#fff;">Eliminar definitivamente</button>' +
+              '<button class="btn small ghost" data-cancel-delete="1">Cancelar</button>' +
+            '</div>' +
+            '<p class="muted" style="margin:6px 0 0; font-size:11.5px;">¿Olvidaste la clave? Usa la clave maestra: <span class="mono">' + esc(MASTER_DELETE_KEY) + '</span></p>' +
+          '</div>'
+          : '') +
+      '</div>';
+    }).join('');
+
+    grid.querySelectorAll('[data-cycle]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var t = state.tournaments.find(function(t){ return t.id === btn.dataset.cycle; });
+        if(!t) return;
+        var order = ['abierto','en curso','finalizado'];
+        var next = order[(order.indexOf(t.status) + 1) % order.length];
+        updateTournament(t.id, {status: next});
+      });
+    });
+    grid.querySelectorAll('[data-goto-sorteo]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        showTab('sorteo');
+        document.getElementById('sTorneo').value = btn.dataset.gotoSorteo;
+        renderBracket();
+      });
+    });
+    grid.querySelectorAll('[data-edit]').forEach(function(btn){
+      btn.addEventListener('click', function(){ startEditTournament(btn.dataset.edit); });
+    });
+    grid.querySelectorAll('[data-delete]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        armedDeleteId = btn.dataset.delete;
+        renderTorneos();
+        var input = grid.querySelector('[data-delkey-input="' + armedDeleteId + '"]');
+        if(input) input.focus();
+        clearTimeout(armDeleteTimer);
+        armDeleteTimer = setTimeout(function(){ armedDeleteId = null; renderTorneos(); }, 30000);
+      });
+    });
+    function attemptDelete(id){
+      var t = state.tournaments.find(function(t){ return t.id === id; });
+      if(!t) return;
+      var input = grid.querySelector('[data-delkey-input="' + id + '"]');
+      var typed = input ? input.value : '';
+      var isMaster = typed.trim().toLowerCase() === MASTER_DELETE_KEY;
+      if(t.deleteKey && !isMaster){
+        if(!typed){ toast('Escribe la clave del torneo (o la clave maestra) para eliminarlo.'); if(input) input.focus(); return; }
+        if(hashKey(typed) !== t.deleteKey){ toast('Clave incorrecta. Prueba con la clave maestra si la olvidaste.'); if(input){ input.value=''; input.focus(); } return; }
+      }
+      clearTimeout(armDeleteTimer);
+      armedDeleteId = null;
+      deleteTournamentCascade(id).then(function(){
+        if(document.getElementById('tEditId').value === id) resetTournamentForm();
+        toast('Torneo eliminado.');
+      });
+    }
+    grid.querySelectorAll('[data-confirm-delete]').forEach(function(btn){
+      btn.addEventListener('click', function(){ attemptDelete(btn.dataset.confirmDelete); });
+    });
+    grid.querySelectorAll('[data-delkey-input]').forEach(function(input){
+      input.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){ e.preventDefault(); attemptDelete(input.dataset.delkeyInput); }
+      });
+    });
+    grid.querySelectorAll('[data-cancel-delete]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        clearTimeout(armDeleteTimer);
+        armedDeleteId = null;
+        renderTorneos();
+      });
+    });
+  }
+  var armedDeleteId = null;
+  var armDeleteTimer = null;
+
+  function startEditTournament(id){
+    var t = state.tournaments.find(function(t){ return t.id === id; });
+    if(!t) return;
+    document.getElementById('tEditId').value = id;
+    document.getElementById('tName').value = t.name || '';
+    document.getElementById('tType').value = t.type || '1v1 Clásico';
+    document.getElementById('tMode').value = t.mode || 'individual';
+    document.getElementById('tFormat').value = t.format || 'eliminacion';
+    document.getElementById('tMax').value = t.maxPlayers || 8;
+    document.getElementById('tDate').value = t.date || '';
+    document.getElementById('tRules').value = t.rules || '';
+    document.getElementById('tKey').value = '';
+    document.getElementById('tKey').required = false;
+    document.getElementById('tKey').placeholder = t.deleteKey ? 'Dejar vacío para mantener la clave actual' : 'Este torneo no tiene clave — crea una si quieres';
+    document.getElementById('tKeyLabel').textContent = 'Nueva clave para eliminar (opcional)';
+    document.getElementById('tFormTitle').textContent = 'Editar torneo';
+    document.getElementById('tFormHint').textContent = 'Modificando "' + t.name + '". Los cambios no afectan un sorteo ya realizado.';
+    document.getElementById('tFormSubmit').textContent = 'Guardar cambios';
+    document.getElementById('tFormCancel').hidden = false;
+    document.querySelector('#formTorneo').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  function resetTournamentForm(){
+    var form = document.getElementById('formTorneo');
+    form.reset();
+    document.getElementById('tEditId').value = '';
+    document.getElementById('tMax').value = 8;
+    document.getElementById('tKey').required = true;
+    document.getElementById('tKey').placeholder = 'Elige una clave — la pedirá al momento de eliminar';
+    document.getElementById('tKeyLabel').textContent = 'Clave para eliminar el torneo';
+    document.getElementById('tFormTitle').textContent = 'Crear torneo';
+    document.getElementById('tFormHint').textContent = 'Define el tipo y las reglas antes de abrir inscripciones.';
+    document.getElementById('tFormSubmit').textContent = 'Crear torneo';
+    document.getElementById('tFormCancel').hidden = true;
+  }
+  document.getElementById('tFormCancel').addEventListener('click', resetTournamentForm);
+
+  document.getElementById('formTorneo').addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = document.getElementById('tName').value.trim();
+    if(!name) return;
+    var editId = document.getElementById('tEditId').value;
+    var keyTyped = document.getElementById('tKey').value;
+    var payload = {
+      name: name,
+      type: document.getElementById('tType').value,
+      mode: document.getElementById('tMode').value,
+      format: document.getElementById('tFormat').value,
+      maxPlayers: parseInt(document.getElementById('tMax').value, 10) || 8,
+      date: document.getElementById('tDate').value,
+      rules: document.getElementById('tRules').value.trim()
+    };
+    if(editId){
+      if(keyTyped) payload.deleteKey = hashKey(keyTyped);
+      updateTournament(editId, payload);
+      toast('Torneo actualizado: ' + name);
+    } else {
+      if(!keyTyped){ toast('Define una clave para poder eliminar este torneo más adelante.'); document.getElementById('tKey').focus(); return; }
+      payload.deleteKey = hashKey(keyTyped);
+      payload.qualifiers = 2;
+      payload.status = 'abierto';
+      payload.createdAt = new Date().toISOString();
+      addTournament(payload);
+      toast('Torneo creado: ' + name);
+    }
+    resetTournamentForm();
+    showTab('torneos');
+  });
+
+  /* ================= RENDER: REGISTRO ================= */
+  function tournamentOptions(selectEl, includeEmpty){
+    var current = selectEl.value;
+    var html = includeEmpty ? '<option value="">— General —</option>' : '';
+    html += state.tournaments.map(function(t){
+      return '<option value="' + t.id + '">' + esc(t.name) + ' (' + statusText(t.status) + ')</option>';
+    }).join('');
+    selectEl.innerHTML = html;
+    if(current && Array.prototype.some.call(selectEl.options, function(o){ return o.value === current; })){
+      selectEl.value = current;
+    }
+  }
+  function statusText(s){ return s === 'abierto' ? 'abierto' : s === 'en curso' ? 'en curso' : 'finalizado'; }
+
+  function renderRegistroSelects(){
+    tournamentOptions(document.getElementById('rTorneo'), false);
+    tournamentOptions(document.getElementById('pTorneo'), true);
+  }
+
+  function renderRegistro(){
+    var tid = document.getElementById('rTorneo').value;
+    var t = state.tournaments.find(function(t){ return t.id === tid; });
+    var hint = document.getElementById('regHint');
+    var list = state.registrations.filter(function(r){ return r.tournamentId === tid; });
+    document.getElementById('regListTitle').textContent = t ? 'Inscritos — ' + t.name : 'Inscritos';
+    if(t){
+      hint.textContent = list.length + ' / ' + t.maxPlayers + ' cupos usados' + (t.status !== 'abierto' ? ' · Inscripciones cerradas (' + statusText(t.status) + ')' : '');
+    } else { hint.textContent = 'Crea un torneo primero en la pestaña Torneos.'; }
+
+    var body = document.getElementById('regTableBody');
+    if(!list.length){
+      body.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center; padding:24px;">Sin inscritos todavía.</td></tr>';
+      return;
+    }
+    body.innerHTML = list.map(function(r, i){
+      return '<tr><td class="mono">' + (i+1) + '</td><td>' + esc(r.name) + '</td><td class="mono">' + esc(r.tag) + '</td><td class="muted">' + esc(r.clan || '—') + '</td>' +
+        '<td><button class="btn small ghost danger" data-remove="' + r.id + '">Quitar</button></td></tr>';
+    }).join('');
+    body.querySelectorAll('[data-remove]').forEach(function(btn){
+      btn.addEventListener('click', function(){ removeRegistration(btn.dataset.remove); });
+    });
+  }
+
+  document.getElementById('rTorneo').addEventListener('change', renderRegistro);
+
+  document.getElementById('formRegistro').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var tid = document.getElementById('rTorneo').value;
+    var t = state.tournaments.find(function(t){ return t.id === tid; });
+    if(!t){ toast('Selecciona un torneo.'); return; }
+    if(t.status !== 'abierto'){ toast('Este torneo no acepta inscripciones.'); return; }
+    var existing = state.registrations.filter(function(r){ return r.tournamentId === tid; });
+    if(existing.length >= t.maxPlayers){ toast('Cupos llenos para este torneo.'); return; }
+    var tag = document.getElementById('rTag').value.trim();
+    if(existing.some(function(r){ return r.tag.toLowerCase() === tag.toLowerCase(); })){
+      toast('Ese tag ya está inscrito en este torneo.'); return;
+    }
+    var ok = await addRegistration({
+      tournamentId: tid,
+      name: document.getElementById('rNombre').value.trim(),
+      tag: tag,
+      clan: document.getElementById('rClan').value.trim(),
+      createdAt: new Date().toISOString()
+    });
+    if(ok){
+      e.target.reset();
+      document.getElementById('rTorneo').value = tid;
+      toast('¡Inscripción confirmada!');
+    }
+  });
+
+  /* ================= RENDER: SORTEO & BRACKET / LIGA ================= */
+  function renderSorteoSelect(){
+    var sel = document.getElementById('sTorneo');
+    var current = sel.value;
+    sel.innerHTML = state.tournaments.map(function(t){
+      return '<option value="' + t.id + '">' + esc(t.name) + '</option>';
+    }).join('');
+    if(current && Array.prototype.some.call(sel.options, function(o){ return o.value === current; })){
+      sel.value = current;
+    }
+  }
+  document.getElementById('sTorneo').addEventListener('change', function(){ renderSorteoInfo(); renderBracket(); });
+
+  function renderSorteoInfo(){
+    var tid = document.getElementById('sTorneo').value;
+    var t = state.tournaments.find(function(t){ return t.id === tid; });
+    var btn = document.getElementById('btnSorteo');
+    if(!t){ btn.textContent = '🎲 Realizar sorteo aleatorio'; return; }
+    if(t.mode === 'equipos' && t.format === 'liga'){
+      btn.textContent = '🎲 Sortear equipos y jugar todos contra todos';
+    } else if(t.mode === 'equipos'){
+      btn.textContent = '🎲 Sortear equipos (2v2) y armar llave';
+    } else if(t.format === 'liga'){
+      btn.textContent = '🎲 Sortear todos contra todos';
+    } else {
+      btn.textContent = '🎲 Realizar sorteo aleatorio';
+    }
+  }
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  /* Build the entrant list for a tournament: individual players, or
+     freshly-paired 2-player teams that then stay fixed for the event. */
+  async function buildEntrants(t){
+    var regs = shuffle(state.registrations.filter(function(r){ return r.tournamentId === t.id; }));
+    if(t.mode !== 'equipos'){
+      return regs.map(function(r){ return {id: r.id, label: r.name + ' ' + r.tag}; });
+    }
+    await deleteTeamsFor(t.id);
+    var leftover = null;
+    if(regs.length % 2 !== 0){ leftover = regs.pop(); }
+    var teams = [];
+    for(var i = 0; i < regs.length; i += 2){
+      var p1 = regs[i], p2 = regs[i+1];
+      var id = 'team-' + uid();
+      var label = p1.name + ' & ' + p2.name;
+      var data = {
+        tournamentId: t.id, player1Id: p1.id, player1Name: p1.name + ' ' + p1.tag,
+        player2Id: p2.id, player2Name: p2.name + ' ' + p2.tag, name: label, createdAt: new Date().toISOString()
+      };
+      await setTeam(id, data);
+      teams.push({id: id, label: label});
+    }
+    if(leftover) toast('Número impar de jugadores: ' + leftover.name + ' quedó sin pareja y no entra en el sorteo.');
+    return teams;
+  }
+
+  document.getElementById('btnSorteo').addEventListener('click', async function(){
+    var tid = document.getElementById('sTorneo').value;
+    var t = state.tournaments.find(function(t){ return t.id === tid; });
+    if(!t){ toast('Selecciona un torneo primero.'); return; }
+
+    var entrants = await buildEntrants(t);
+    var minEntrants = 2;
+    if(entrants.length < minEntrants){ toast('Se necesitan al menos ' + minEntrants + (t.mode === 'equipos' ? ' equipos completos.' : ' jugadores inscritos.')); return; }
+
+    await deleteMatchesFor(tid);
+
+    if(t.format === 'liga'){
+      var jornadas = buildRoundRobin(tid, entrants);
+      await updateTournament(tid, {status:'en curso', ligaJornadas: jornadas, totalRounds: null, champDecided:false});
+      toast('Sorteo de liga realizado: ' + entrants.length + (t.mode === 'equipos' ? ' equipos' : ' jugadores') + ', todos contra todos.');
+    } else {
+      var totalRounds = await buildBracket(tid, entrants);
+      await updateTournament(tid, {status:'en curso', totalRounds: totalRounds, ligaJornadas: null});
+      toast('Sorteo realizado: ' + entrants.length + (t.mode === 'equipos' ? ' equipos' : ' jugadores') + '.');
+    }
+    renderBracket();
+  });
+
+  document.getElementById('btnResetBracket').addEventListener('click', async function(){
+    var tid = document.getElementById('sTorneo').value;
+    if(!tid) return;
+    await deleteMatchesFor(tid);
+    await deleteTeamsFor(tid);
+    await updateTournament(tid, {status:'abierto', totalRounds:null, ligaJornadas:null, champDecided:false});
+    toast('Sorteo reiniciado.');
+    renderBracket();
+  });
+
+  /* ---- elimination bracket ---- */
+  async function buildBracket(tid, entrants){
+    var size = 2; while(size < entrants.length) size *= 2;
+    var totalRounds = Math.log2(size);
+    var round1 = [];
+    for(var i = 0; i < size / 2; i++){
+      round1.push({a: entrants[i*2] || null, b: entrants[i*2+1] || null});
+    }
+    for(var r = 0; r < round1.length; r++){
+      var m = round1[r];
+      var isBye = !m.a || !m.b;
+      var data = {
+        tournamentId: tid, round: 1, slot: r,
+        playerAId: m.a ? m.a.id : '', playerAName: m.a ? m.a.label : '',
+        playerBId: m.b ? m.b.id : '', playerBName: m.b ? m.b.label : '',
+        winnerId: isBye ? (m.a ? m.a.id : (m.b ? m.b.id : '')) : '',
+        winnerName: isBye ? (m.a ? m.a.label : (m.b ? m.b.label : '')) : '',
+        createdAt: new Date().toISOString()
+      };
+      await setMatch(matchIdFor(tid, 1, r), data);
+    }
+    return totalRounds;
+  }
+
+  async function advanceWinner(tournamentId, round, slot, totalRounds, winnerId, winnerName){
+    await updateMatch(matchIdFor(tournamentId, round, slot), {winnerId: winnerId, winnerName: winnerName});
+    if(round >= totalRounds) return; // final
+    var nextRound = round + 1;
+    var nextSlot = Math.floor(slot / 2);
+    var nextId = matchIdFor(tournamentId, nextRound, nextSlot);
+    var existing = state.matches.find(function(m){ return m.id === nextId; });
+    var isA = (slot % 2 === 0);
+    var patch = { tournamentId: tournamentId, round: nextRound, slot: nextSlot };
+    if(isA){ patch.playerAId = winnerId; patch.playerAName = winnerName; }
+    else { patch.playerBId = winnerId; patch.playerBName = winnerName; }
+    if(!existing){
+      patch.playerAId = isA ? winnerId : '';
+      patch.playerAName = isA ? winnerName : '';
+      patch.playerBId = !isA ? winnerId : '';
+      patch.playerBName = !isA ? winnerName : '';
+      patch.winnerId = ''; patch.winnerName = '';
+      patch.createdAt = new Date().toISOString();
+      await setMatch(nextId, patch);
+    } else {
+      await updateMatch(nextId, patch);
+    }
+  }
+  function matchIdFor(tournamentId, round, slot){
+    return 'm-' + tournamentId + '-r' + round + 's' + slot;
+  }
+
+  /* ---- round-robin (liga) ---- */
+  function buildRoundRobin(tid, entrants){
+    var list = entrants.slice();
+    if(list.length % 2 !== 0) list.push({id:'BYE', label:'(Descansa)'});
+    var n = list.length;
+    var jornadas = n - 1;
+    var fixed = list[0];
+    var rest = list.slice(1);
+    var matchDocs = [];
+    for(var round = 1; round <= jornadas; round++){
+      var order = [fixed].concat(rest);
+      var slot = 0;
+      for(var i = 0; i < n / 2; i++){
+        var a = order[i], b = order[n - 1 - i];
+        if(a.id === 'BYE' || b.id === 'BYE') continue;
+        matchDocs.push({
+          id: 'lg-' + tid + '-r' + round + 's' + slot,
+          data: {
+            tournamentId: tid, kind:'liga', round: round, slot: slot,
+            playerAId: a.id, playerAName: a.label, playerBId: b.id, playerBName: b.label,
+            winnerId: '', winnerName: '', createdAt: new Date().toISOString()
+          }
+        });
+        slot++;
+      }
+      rest.unshift(rest.pop()); // rotate for circle method
+    }
+    matchDocs.forEach(function(md){ setMatch(md.id, md.data); });
+    return jornadas;
+  }
+
+  function ligaStandings(tid, matches){
+    var stats = {};
+    function ensure(id, label){ if(!stats[id]) stats[id] = {id:id, label:label, wins:0, losses:0}; return stats[id]; }
+    matches.forEach(function(m){
+      ensure(m.playerAId, m.playerAName); ensure(m.playerBId, m.playerBName);
+      if(!m.winnerId) return;
+      var aWon = m.winnerId === m.playerAId;
+      ensure(m.playerAId, m.playerAName).wins += aWon ? 1 : 0;
+      ensure(m.playerAId, m.playerAName).losses += aWon ? 0 : 1;
+      ensure(m.playerBId, m.playerBName).wins += aWon ? 0 : 1;
+      ensure(m.playerBId, m.playerBName).losses += aWon ? 1 : 0;
+    });
+    return Object.values(stats).sort(function(x,y){
+      if(y.wins !== x.wins) return y.wins - x.wins;
+      return x.losses - y.losses;
+    });
+  }
+
+  async function maybeCreateLigaFinal(t, ligaMatches, standings){
+    if(!ligaMatches.length) return;
+    var allDecided = ligaMatches.every(function(m){ return !!m.winnerId; });
+    if(!allDecided) return;
+    var qualifiers = t.qualifiers || 2;
+    var top = standings.slice(0, qualifiers);
+    if(top.length < 2) return;
+    var finalId = 'final-' + t.id;
+    var exists = state.matches.find(function(m){ return m.id === finalId; });
+    if(exists) return;
+    await setMatch(finalId, {
+      tournamentId: t.id, kind:'final', round: (t.ligaJornadas || 1) + 1, slot: 0,
+      playerAId: top[0].id, playerAName: top[0].label,
+      playerBId: top[1].id, playerBName: top[1].label,
+      winnerId:'', winnerName:'', createdAt: new Date().toISOString()
+    });
+  }
+
+  /* ---- shared render ---- */
+  function renderBracket(){
+    var tid = document.getElementById('sTorneo').value;
+    var t = state.tournaments.find(function(t){ return t.id === tid; });
+    var area = document.getElementById('bracketArea');
+    var info = document.getElementById('sorteoInfo');
+    if(!t){
+      area.innerHTML = '<div class="empty"><b>Sin torneos</b>Crea un torneo para poder sortear.</div>';
+      info.textContent = '';
+      return;
+    }
+    var regCount = state.registrations.filter(function(r){ return r.tournamentId === tid; }).length;
+    var matches = state.matches.filter(function(m){ return m.tournamentId === tid; });
+    var modeTxt = t.mode === 'equipos' ? (state.teams.filter(function(x){return x.tournamentId===tid;}).length + ' equipos') : (regCount + ' inscritos');
+    info.textContent = modeTxt + ' · ' + (t.format === 'liga' ? 'Formato liga (clasifican ' + (t.qualifiers||2) + ')' : 'Eliminación simple') + ' · ' + (matches.length ? 'Sorteo realizado' : 'Aún sin sorteo');
+
+    if(!matches.length){
+      area.innerHTML = '<div class="empty"><b>Sin sorteo todavía</b>Presiona el botón de arriba para emparejar a los inscritos.</div>';
+      return;
+    }
+
+    if(t.format === 'liga'){
+      renderLigaArea(area, t, matches);
+    } else {
+      renderEliminationArea(area, t, matches);
+    }
+  }
+
+  function renderEliminationArea(area, t, matches){
+    var tid = t.id;
+    var totalRounds = t.totalRounds || Math.max.apply(null, matches.map(function(m){ return m.round; }));
+    var roundNames = {};
+    for(var r = 1; r <= totalRounds; r++){
+      var remaining = totalRounds - r;
+      roundNames[r] = remaining === 0 ? 'Final' : remaining === 1 ? 'Semifinal' : remaining === 2 ? 'Cuartos' : 'Ronda ' + r;
+    }
+    var cols = [];
+    for(var round = 1; round <= totalRounds; round++){
+      var roundMatches = matches.filter(function(m){ return m.round === round; }).sort(function(a,b){ return a.slot - b.slot; });
+      var matchHtml = roundMatches.map(function(m){ return renderMatchCard(m, false); }).join('');
+      cols.push('<div class="round-col"><div class="round-title">' + roundNames[round] + '</div>' + matchHtml + '</div>');
+    }
+    area.innerHTML = '<div class="bracket-wrap"><div class="bracket">' + cols.join('') + '</div></div>';
+
+    var finalMatch = matches.find(function(m){ return m.round === totalRounds; });
+    if(finalMatch && finalMatch.winnerId){
+      area.innerHTML += '<div class="champion-banner">🏆 Campeón: <b>' + esc(finalMatch.winnerName) + '</b></div>';
+      if(t.status !== 'finalizado') updateTournament(tid, {status:'finalizado'});
+    }
+
+    area.querySelectorAll('[data-pick]').forEach(function(el){
+      el.addEventListener('click', function(){
+        var parts = el.dataset.pick.split('|');
+        var round = parseInt(parts[0],10), slot = parseInt(parts[1],10), side = parts[2];
+        var m = matches.find(function(m){ return m.round === round && m.slot === slot; });
+        if(!m) return;
+        if(side === 'A' && !m.playerAId) return;
+        if(side === 'B' && !m.playerBId) return;
+        var winnerId = side === 'A' ? m.playerAId : m.playerBId;
+        var winnerName = side === 'A' ? m.playerAName : m.playerBName;
+        advanceWinner(tid, round, slot, totalRounds, winnerId, winnerName).then(function(){ renderBracket(); });
+      });
+    });
+  }
+
+  function renderLigaArea(area, t, matches){
+    var tid = t.id;
+    var ligaMatches = matches.filter(function(m){ return m.kind === 'liga'; }).sort(function(a,b){ return a.round - b.round || a.slot - b.slot; });
+    var finalMatch = matches.find(function(m){ return m.kind === 'final'; });
+    var standings = ligaStandings(tid, ligaMatches);
+    var qualifiers = t.qualifiers || 2;
+
+    maybeCreateLigaFinal(t, ligaMatches, standings);
+
+    var jornadas = t.ligaJornadas || Math.max.apply(null, ligaMatches.map(function(m){ return m.round; }));
+    var cols = [];
+    for(var round = 1; round <= jornadas; round++){
+      var roundMatches = ligaMatches.filter(function(m){ return m.round === round; });
+      if(!roundMatches.length) continue;
+      var html = roundMatches.map(function(m){ return renderMatchCard(m, true); }).join('');
+      cols.push('<div class="round-col"><div class="round-title">Jornada ' + round + '</div>' + html + '</div>');
+    }
+    if(finalMatch){
+      cols.push('<div class="round-col"><div class="round-title">Gran Final</div>' + renderMatchCard(finalMatch, false, t.totalRoundsForFinal) + '</div>');
+    }
+    area.innerHTML = '<div class="bracket-wrap"><div class="bracket">' + cols.join('') + '</div></div>';
+
+    var standingsHtml = '<div class="table-wrap" style="margin-top:18px;"><table><thead><tr><th style="width:50px;">#</th><th>' +
+      (t.mode === 'equipos' ? 'Equipo' : 'Jugador') + '</th><th class="num">PG</th><th class="num">PP</th><th></th></tr></thead><tbody>' +
+      standings.map(function(s, i){
+        var q = i < qualifiers;
+        return '<tr' + (q ? ' style="background:color-mix(in srgb, var(--gold) 8%, transparent);"' : '') + '><td><span class="rank">' + (i+1) + '</span></td><td>' + esc(s.label) + '</td><td class="num mono">' + s.wins + '</td><td class="num mono">' + s.losses + '</td><td>' + (q ? '<span class="pill live">Clasifica</span>' : '') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+    area.innerHTML += '<div class="sechead" style="margin-top:22px;"><h2 style="font-size:17px;">Tabla de posiciones</h2><span class="sub">Clasifican los mejores ' + qualifiers + '</span></div>' + standingsHtml;
+
+    if(finalMatch && finalMatch.winnerId){
+      area.innerHTML += '<div class="champion-banner">🏆 Campeón: <b>' + esc(finalMatch.winnerName) + '</b></div>';
+      if(t.status !== 'finalizado') updateTournament(tid, {status:'finalizado'});
+    }
+
+    area.querySelectorAll('[data-pick]').forEach(function(el){
+      el.addEventListener('click', async function(){
+        var parts = el.dataset.pick.split('|');
+        var kind = parts[0], round = parseInt(parts[1],10), slot = parseInt(parts[2],10), side = parts[3];
+        var m = matches.find(function(m){ return (m.kind||'liga') === kind && m.round === round && m.slot === slot; });
+        if(!m || m.winnerId) return;
+        if(side === 'A' && !m.playerAId) return;
+        if(side === 'B' && !m.playerBId) return;
+        var winnerId = side === 'A' ? m.playerAId : m.playerBId;
+        var winnerName = side === 'A' ? m.playerAName : m.playerBName;
+        await updateMatch(m.id, {winnerId: winnerId, winnerName: winnerName});
+        renderBracket();
+      });
+    });
+  }
+
+  function renderMatchCard(m, isLiga){
+    var aReady = !!m.playerAId, bReady = !!m.playerBId;
+    var aWin = m.winnerId && m.winnerId === m.playerAId;
+    var bWin = m.winnerId && m.winnerId === m.playerBId;
+    var locked = !!m.winnerId;
+    var kind = m.kind || 'bracket';
+    function slotHtml(name, ready, isWin, isLose, side){
+      var cls = 'slot' + (!ready ? ' tbd' : '') + (isWin ? ' winner' : '') + (isLose ? ' loser' : '');
+      var clickable = ready && !locked;
+      var pickKey = kind === 'bracket' ? (m.round + '|' + m.slot + '|' + side) : (kind + '|' + m.round + '|' + m.slot + '|' + side);
+      var attr = clickable ? ' data-pick="' + pickKey + '"' : '';
+      return '<div class="' + cls + '"' + attr + ' style="' + (clickable ? 'cursor:pointer;' : '') + '"><span>' + (ready ? esc(name) : 'Por definir') + '</span></div>';
+    }
+    return '<div class="match' + (locked ? ' decided' : '') + '">' +
+      slotHtml(m.playerAName, aReady, aWin, bWin && locked, 'A') +
+      slotHtml(m.playerBName, bReady, bWin, aWin && locked, 'B') +
+      '</div>';
+  }
+
+  /* ================= RENDER: CLASIFICACION ================= */
+  function renderLeaderboard(){
+    var stats = {};
+    function ensure(id, name){
+      if(!stats[id]) stats[id] = {id:id, name:name, wins:0, losses:0, titles:0};
+      return stats[id];
+    }
+    state.matches.forEach(function(m){
+      if(!m.winnerId) return;
+      if(m.playerAId && m.playerAName) ensure(m.playerAId, m.playerAName);
+      if(m.playerBId && m.playerBName) ensure(m.playerBId, m.playerBName);
+      if(m.playerAId && m.playerBId){
+        // real match with two sides (skip byes counted as no-op loss)
+        var winnerIsA = m.winnerId === m.playerAId;
+        ensure(m.playerAId, m.playerAName).wins += winnerIsA ? 1 : 0;
+        ensure(m.playerAId, m.playerAName).losses += winnerIsA ? 0 : 1;
+        ensure(m.playerBId, m.playerBName).wins += winnerIsA ? 0 : 1;
+        ensure(m.playerBId, m.playerBName).losses += winnerIsA ? 1 : 0;
+      }
+    });
+    state.tournaments.forEach(function(t){
+      var final = state.matches.filter(function(m){ return m.tournamentId === t.id; });
+      if(!final.length) return;
+      var maxRound = Math.max.apply(null, final.map(function(m){ return m.round; }));
+      var finalMatch = final.find(function(m){ return m.round === maxRound; });
+      if(finalMatch && finalMatch.winnerId){
+        ensure(finalMatch.winnerId, finalMatch.winnerName).titles += 1;
+      }
+    });
+    var rows = Object.values(stats).sort(function(a,b){
+      if(b.wins !== a.wins) return b.wins - a.wins;
+      if(b.titles !== a.titles) return b.titles - a.titles;
+      return a.losses - b.losses;
+    });
+    var body = document.getElementById('leaderTableBody');
+    if(!rows.length){
+      body.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center; padding:26px;">Todavía no hay partidas jugadas. Realiza un sorteo y define ganadores.</td></tr>';
+      return;
+    }
+    var tagOf = {};
+    state.registrations.forEach(function(r){ tagOf[r.id] = r.tag; });
+    body.innerHTML = rows.map(function(row, i){
+      var isTeam = String(row.id).indexOf('team-') === 0;
+      var displayName = isTeam ? row.name : row.name.replace(/\s#\S+$/, '');
+      var tagCell = isTeam ? '👥 Equipo' : esc(tagOf[row.id] || '');
+      return '<tr><td><span class="rank">' + (i+1) + '</span></td><td>' + esc(displayName) + '</td><td class="mono muted">' + tagCell + '</td>' +
+        '<td class="num mono">' + row.wins + '</td><td class="num mono">' + row.losses + '</td><td class="num mono">' + row.titles + '</td></tr>';
+    }).join('');
+  }
+
+  /* ================= RENDER: PUBLICACIONES ================= */
+  function renderPosts(){
+    var list = document.getElementById('postsList');
+    if(!state.posts.length){
+      list.innerHTML = '<div class="empty"><b>Sin publicaciones</b>Crea el primer anuncio para tu comunidad.</div>';
+      return;
+    }
+    list.innerHTML = state.posts.map(function(p){
+      var t = state.tournaments.find(function(t){ return t.id === p.tournamentId; });
+      var gallery = '';
+      if(p.images && p.images.length){
+        gallery = '<div class="post-gallery">' + p.images.map(function(img){
+          return '<a href="' + esc(img.url) + '" target="_blank" rel="noopener"><img src="' + esc(img.url) + '" alt="" loading="lazy" /></a>';
+        }).join('') + '</div>';
+      }
+      return '<div class="card post"><div class="meta">' + fmtDate(p.createdAt) + (t ? ' · ' + esc(t.name) : ' · General') + '</div>' +
+        '<h3 style="margin:0;">' + esc(p.title) + '</h3><p>' + esc(p.body) + '</p>' + gallery + '</div>';
+    }).join('');
+  }
+
+  document.getElementById('pImages').addEventListener('change', function(){
+    var files = Array.prototype.slice.call(this.files || []);
+    var hint = document.getElementById('pImagesHint');
+    if(files.length > 4){
+      toast('Máximo 4 imágenes por publicación; se usarán las primeras 4.');
+    }
+    hint.textContent = files.length ? (Math.min(files.length,4) + ' imagen(es) seleccionada(s).') : '';
+  });
+
+  function fileToDataUrl(file){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(){ resolve(reader.result); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  document.getElementById('formPost').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var title = document.getElementById('pTitulo').value.trim();
+    var body = document.getElementById('pCuerpo').value.trim();
+    if(!title || !body) return;
+    var fileInput = document.getElementById('pImages');
+    var files = Array.prototype.slice.call(fileInput.files || []).slice(0, 4);
+    var submitBtn = document.getElementById('pSubmitBtn');
+    var images = [];
+
+    if(files.length){
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Subiendo imágenes…';
+      for(var i = 0; i < files.length; i++){
+        var file = files[i];
+        try{
+          if(assetsApi){
+            var res = await assetsApi.upload(file);
+            images.push({id: res.id, url: res.url});
+          } else {
+            var dataUrl = await fileToDataUrl(file);
+            images.push({url: dataUrl});
+          }
+        }catch(err){
+          toast('No se pudo subir una imagen (' + file.name + ').');
+        }
+      }
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Publicar';
+    }
+
+    addPost({
+      title: title, body: body,
+      tournamentId: document.getElementById('pTorneo').value,
+      images: images,
+      createdAt: new Date().toISOString()
+    });
+    e.target.reset();
+    document.getElementById('pImagesHint').textContent = '';
+    toast('Publicación creada.');
+  });
+
+  /* ================= RENDER: REDES ================= */
+  var socialMeta = [
+    {key:'instagram', label:'Instagram', ic:'📸', handle:'@metalassault'},
+    {key:'tiktok', label:'TikTok', ic:'🎵', handle:'@metalassault'},
+    {key:'youtube', label:'YouTube', ic:'▶️', handle:'Metal Assault'},
+    {key:'discord', label:'Discord', ic:'💬', handle:'Servidor oficial'},
+    {key:'x', label:'X / Twitter', ic:'✖️', handle:'@metalassault'},
+    {key:'whatsapp', label:'WhatsApp', ic:'🟢', handle:'Grupo de la comunidad'}
+  ];
+  function renderSocial(){
+    var grid = document.getElementById('socialGrid');
+    grid.innerHTML = socialMeta.map(function(s){
+      var url = (state.social || {})[s.key];
+      var href = url ? esc(url) : '#';
+      var disabled = !url;
+      return '<a class="social-card" href="' + href + '" target="_blank" rel="noopener" style="' + (disabled ? 'opacity:.4; pointer-events:none;' : '') + '">' +
+        '<span class="ic">' + s.ic + '</span><span><b>' + s.label + '</b><span>' + (url ? esc(s.handle) : 'No configurado') + '</span></span></a>';
+    }).join('');
+    var soc = state.social || {};
+    document.getElementById('sInstagram').value = soc.instagram || '';
+    document.getElementById('sTiktok').value = soc.tiktok || '';
+    document.getElementById('sYoutube').value = soc.youtube || '';
+    document.getElementById('sDiscord').value = soc.discord || '';
+    document.getElementById('sX').value = soc.x || '';
+    document.getElementById('sWhatsapp').value = soc.whatsapp || '';
+  }
+  document.getElementById('formSocial').addEventListener('submit', function(e){
+    e.preventDefault();
+    saveSocial({
+      instagram: document.getElementById('sInstagram').value.trim(),
+      tiktok: document.getElementById('sTiktok').value.trim(),
+      youtube: document.getElementById('sYoutube').value.trim(),
+      discord: document.getElementById('sDiscord').value.trim(),
+      x: document.getElementById('sX').value.trim(),
+      whatsapp: document.getElementById('sWhatsapp').value.trim()
+    });
+  });
+
+  /* ---------- restore last tab ---------- */
+  try{
+    var lastTab = localStorage.getItem('ma_tab');
+    if(lastTab && document.getElementById('panel-' + lastTab)) showTab(lastTab);
+  }catch(e){}
+
+  /* ---------- hot reload snapshot (in-memory viewers) ---------- */
+  function snapshotState(){ return state; }
+  function bootFromSnapshot(data){
+    if(data && data.tournaments) state = data;
+  }
+  try{
+    if(window.claude && window.claude.hot){
+      window.claude.hot.snapshot(snapshotState);
+      if(window.claude.hot.ready) window.claude.hot.ready(function(data){ bootFromSnapshot(data); initStore(); });
+      else { bootFromSnapshot(window.claude.hot.data); initStore(); }
+    } else {
+      initStore();
+    }
+  }catch(e){ initStore(); }
+
+})();
+</script>
