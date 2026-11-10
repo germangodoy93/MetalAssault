@@ -1,34 +1,61 @@
 # Metal Assault
 
-App para organizar torneos de Clash Royale: registro de jugadores, tipos y reglas de torneo, sorteo aleatorio, llave de eliminación dinámica / liga todos-contra-todos, clasificación, publicaciones (con imágenes) y redes sociales.
+App para organizar torneos de Clash Royale: registro de jugadores, tipos y reglas de torneo, sorteo aleatorio, fase de grupos + eliminatoria, liga todos contra todos, clasificación, publicaciones (con imágenes) y redes sociales.
+
+Los datos se guardan en el servidor y se sincronizan en tiempo real: todo lo que un organizador cambia (inscripciones, sorteos, resultados) lo ven al instante los demás que tengan la página abierta.
 
 ## Desplegar en Railway
 
-Este repo ya incluye un pequeño servidor Express (`server.js`) que sirve `index.html` como sitio estático, así que Railway lo detecta automáticamente (Nixpacks + `npm start`). Solo conecta el repo en Railway y despliega — no requiere variables de entorno.
+1. En el proyecto de Railway, agrega una base de datos: **New → Database → PostgreSQL**.
+2. En el servicio de la app, abre **Variables** y agrega una referencia a la base de datos:
+   `DATABASE_URL = ${{Postgres.DATABASE_URL}}`
+3. Despliega (cada `git push` a `main` redespliega). Las tablas se crean solas al arrancar.
+
+Si el servicio arranca sin `DATABASE_URL`, la app funciona, pero guarda los datos en el disco temporal del contenedor y **se pierden en cada despliegue**. Los logs lo advierten.
+
+Variables opcionales:
+
+| Variable | Uso |
+| --- | --- |
+| `DATABASE_SSL=true` | Solo si te conectas por la URL pública de Postgres (con la red interna de Railway no hace falta). |
+| `DATA_DIR` | Carpeta del almacenamiento local cuando no hay Postgres (por defecto `./data`). |
+
+## Desarrollo local
 
 ```
 npm install
-npm start
+npm start      # http://localhost:3000 — sin DATABASE_URL usa ./data/store.json
+npm test       # pruebas del motor de torneos
 ```
 
-## ⚠️ Importante: persistencia de datos en este despliegue
+Para probar contra Postgres en local, define `DATABASE_URL` antes de `npm start`.
 
-La versión publicada en Claude (el artifact) usa capacidades propias de Claude (`window.claude.use('db')` y `window.claude.use('assets')`) para guardar los torneos, inscritos, llaves y publicaciones en un almacenamiento compartido en la nube de Claude, sincronizado en tiempo real entre todos los que abren el enlace.
+## Formatos de torneo
 
-**Esas capacidades solo existen dentro del visor de artifacts de Claude.** Al desplegar este mismo `index.html` en Railway (o cualquier otro hosting), `window.claude` no existe, así que la app cae automáticamente a su modo de respaldo:
+- **Grupos + eliminatoria** (por defecto): los participantes se reparten en grupos de 3 a 5 y juegan todos contra todos dentro de su grupo. Los 2 mejores de cada grupo pasan a una llave con cruces 1° vs 2° de otro grupo, así dos jugadores del mismo grupo solo pueden volver a cruzarse en la final.
+  - 8 participantes → 2 grupos de 4 (3 partidas cada uno) → semifinales → final.
+  - 16 participantes → 4 grupos de 4 → cuartos → semis → final.
+  - 2 participantes → final directa.
+- **Liga**: un solo grupo, todos contra todos, y final entre los 2 primeros.
 
-- Los datos se guardan solo en el `localStorage` del navegador de cada visitante.
-- **No se comparten entre distintas personas ni distintos dispositivos** — cada quien ve/edita su propia copia local.
-- Las imágenes de las publicaciones se guardan como base64 dentro de ese mismo `localStorage` (ocupan más espacio y tienen un límite de tamaño del navegador, normalmente unos 5-10 MB en total).
+Desempate dentro de un grupo: victorias, luego duelo directo entre los empatados y, si persiste, el orden del sorteo (se indica en la tabla).
 
-Esto es correcto para probar el diseño y el flujo de la app, pero **si necesitas que todos los organizadores/jugadores vean los mismos torneos e inscripciones en tiempo real**, hay dos caminos:
+### Corregir un resultado
 
-1. Seguir usando el enlace del artifact de Claude para el uso real de la comunidad (ahí sí hay datos compartidos).
-2. Agregar un backend propio (por ejemplo una API en este mismo `server.js` con una base de datos como SQLite/Postgres) y adaptar las funciones `initStore`, `setMatch`, `addTournament`, etc. en `index.html` para llamar a esa API en vez de `window.claude.use('db')`. Con gusto ayudo a construir esa versión si la necesitas.
+- Toca al otro jugador de un partido ya decidido para cambiar el ganador.
+- O usa **↺ Quitar resultado** y vuelve a elegir.
+- Si el cambio afecta rondas siguientes (por ejemplo, el ganador ya había jugado la final), la app avisa y limpia esos resultados en cascada.
+- Si un cambio en la fase de grupos altera quién clasifica, la eliminatoria se vuelve a armar (también con aviso).
+
+## Datos de la versión anterior
+
+La versión anterior guardaba todo solo en el `localStorage` de cada navegador. Al abrir la nueva versión desde un navegador que tenga esos datos, aparece un aviso para **subirlos al servidor** (no sobrescribe nada que ya exista allí).
 
 ## Estructura
 
-- `index.html` — toda la aplicación (HTML + CSS + JS en un solo archivo)
+- `index.html` — interfaz (HTML + CSS + JS)
+- `bracket.js` — motor del torneo: grupos, cruces, desempates, avance y corrección de resultados (sin DOM, se usa en el navegador y en las pruebas)
+- `server.js` — servidor Express: API (`/api/state`, `/api/batch`, `/api/events`, `/api/images`) y archivos públicos
+- `store.js` — almacenamiento: Postgres (`DATABASE_URL`) o archivo local
+- `test/` — pruebas del motor (`npm test`)
 - `logo.jpg` — logo de Metal Assault
-- `server.js` — servidor estático Express para Railway
-- `package.json` — dependencias y script de arranque

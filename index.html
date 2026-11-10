@@ -1,3 +1,10 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="description" content="Metal Assault — torneos de Clash Royale: inscripciones, grupos, eliminatoria y clasificación." />
+<link rel="icon" href="logo.jpg" />
 <title>Metal Assault</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
@@ -194,9 +201,10 @@
   .round-title{ font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); text-align:center; margin-bottom:6px; font-family:'IBM Plex Mono',monospace; }
   .match{ background:var(--surface); border:1px solid var(--line); border-radius:10px; overflow:hidden; position:relative; }
   .match.decided{ border-color:color-mix(in srgb, var(--gold) 35%, var(--line)); }
-  .slot{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; font-size:13.5px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .slot{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; font-size:13.5px; border-bottom:1px solid var(--line); cursor:default; }
   .slot:last-child{ border-bottom:none; }
-  .slot:hover:not(.tbd):not(.winner){ background:var(--surface-2); }
+  .slot[data-pick]{ cursor:pointer; }
+  .slot[data-pick]:hover{ background:var(--surface-2); }
   .slot.winner{ color:var(--gold); font-weight:700; }
   .slot.winner::after{ content:"✓"; font-size:13px; font-weight:700; }
   .slot.loser{ color:var(--text-faint); text-decoration:line-through; }
@@ -207,6 +215,27 @@
     border:1px solid var(--gold);
   }
   .champion-banner b{ color:var(--gold); font-size:20px; font-family:'Rajdhani',sans-serif; text-transform:uppercase; }
+  .slot.loser[data-pick]{ cursor:pointer; }
+  .slot.loser[data-pick]:hover{ text-decoration:none; color:var(--text-dim); background:var(--surface-2); }
+  .slot.bye{ color:var(--text-faint); font-style:italic; cursor:default; }
+  .slot.placeholder{ color:var(--text-faint); font-style:normal; cursor:default; }
+  .match-foot{ display:flex; justify-content:flex-end; padding:3px 6px; border-top:1px solid var(--line); background:var(--surface-2); }
+  .undo-btn{ background:transparent; border:none; color:var(--text-faint); font-size:11.5px; cursor:pointer; padding:2px 6px; border-radius:6px; font-family:inherit; }
+  .undo-btn:hover{ color:var(--danger); background:var(--surface-3); }
+  .stage-title{ font-size:17px; text-transform:uppercase; margin:6px 0 12px; }
+  .groups-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px; margin-bottom:24px; }
+  @media (max-width:400px){ .groups-grid{ grid-template-columns:1fr; } }
+  .group-card{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px; min-width:0; }
+  .group-card h3{ margin:0 0 10px; font-size:18px; text-transform:uppercase; }
+  .group-card table{ font-size:13px; margin-bottom:12px; }
+  .group-card td, .group-card th{ padding:6px 8px; }
+  .group-card tr.q td{ background:color-mix(in srgb, var(--gold) 8%, transparent); }
+  .jornada{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin:10px 0 6px; font-family:'IBM Plex Mono',monospace; }
+  .group-matches{ display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
+  .group-matches .slot{ font-size:12.5px; padding:6px 8px; }
+  .help-line{ font-size:12.5px; color:var(--text-faint); margin:0 0 14px; }
+  .notice{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:12px 16px; margin-bottom:18px; border:1px solid var(--gold); border-radius:12px; background:color-mix(in srgb, var(--gold) 10%, var(--surface)); font-size:13.5px; }
+  .notice[hidden]{ display:none; }
 
   /* leaderboard table */
   table{ width:100%; border-collapse:collapse; font-size:14px; }
@@ -257,6 +286,8 @@
   footer .wrap{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   footer p{ color:var(--text-faint); font-size:12px; margin:0; }
 </style>
+</head>
+<body>
 
 <div id="toast" class="toast"></div>
 
@@ -284,6 +315,16 @@
 </header>
 
 <main class="wrap">
+  <div class="notice" id="importNotice" hidden>
+    <span id="importNoticeText"></span>
+    <span class="row">
+      <button class="btn small primary" id="btnImportLocal">Subir al servidor</button>
+      <button class="btn small ghost" id="btnDismissLocal">Descartar</button>
+    </span>
+  </div>
+  <div class="notice" id="offlineNotice" hidden>
+    <span>Sin conexión con el servidor: los cambios se guardan solo en este navegador.</span>
+  </div>
 
   <!-- INICIO -->
   <section class="panel active" id="panel-inicio">
@@ -347,8 +388,8 @@
           <div>
             <label for="tFormat">Formato</label>
             <select id="tFormat">
-              <option value="eliminacion">Eliminación simple</option>
-              <option value="liga">Liga · todos contra todos (clasifican 2)</option>
+              <option value="eliminacion">Grupos + eliminatoria</option>
+              <option value="liga">Liga · todos contra todos + final</option>
             </select>
           </div>
           <div>
@@ -356,6 +397,7 @@
             <input id="tMax" type="number" min="2" max="128" value="8" />
           </div>
         </div>
+        <p class="muted" id="tFormatHint" style="margin:-4px 0 0; font-size:12.5px;"></p>
         <div>
           <label for="tDate">Fecha</label>
           <input id="tDate" type="date" />
@@ -427,7 +469,8 @@
       <button class="btn primary" id="btnSorteo">🎲 Realizar sorteo aleatorio</button>
       <button class="btn ghost danger" id="btnResetBracket">Reiniciar llave</button>
     </div>
-    <div id="sorteoInfo" class="muted" style="margin-bottom:10px;"></div>
+    <div id="sorteoInfo" class="muted" style="margin-bottom:6px;"></div>
+    <p class="help-line">Toca un jugador para marcarlo como ganador. ¿Te equivocaste? Toca al otro jugador para cambiar el ganador, o usa «Quitar resultado».</p>
     <div id="bracketArea"></div>
   </section>
 
@@ -501,10 +544,11 @@
 <footer>
   <div class="wrap">
     <p>Metal Assault © <span id="year"></span> — Comunidad de Clash Royale</p>
-    <p class="mono">v1.0</p>
+    <p class="mono">v1.1</p>
   </div>
 </footer>
 
+<script src="bracket.js"></script>
 <script>
 (function(){
   "use strict";
@@ -581,17 +625,23 @@
   }
 
   /* ================= DATA LAYER ================= */
-  var state = {
-    tournaments: [],
-    registrations: [],
-    teams: [],
-    matches: [],
-    posts: [],
-    social: {}
-  };
-
-  var db = null;
+  /* Shared data lives on the server (Postgres on Railway). Every change is
+     sent as one batch of operations; the server notifies every open browser
+     (Server-Sent Events) and they reload the state, so all organizers and
+     players see the same tournaments in real time. If the server cannot be
+     reached the app keeps working offline with this browser's localStorage. */
+  var B = window.MABracket;
+  var COLS = ['tournaments','registrations','teams','matches','posts'];
+  var state = { tournaments:[], registrations:[], teams:[], matches:[], posts:[], social:{} };
+  var online = false;
+  var version = -1;
   var LS_KEY = 'ma_store_v1';
+  var LS_IMPORTED = 'ma_store_v1_imported';
+
+  function nowIso(){ return new Date().toISOString(); }
+  function stripId(o){ var c = Object.assign({}, o); delete c.id; return c; }
+  function byCreatedDesc(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); }
+  function byCreatedAsc(a,b){ return (a.createdAt||'').localeCompare(b.createdAt||''); }
 
   function loadLocal(){
     try{
@@ -604,9 +654,109 @@
     try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
   }
 
+  function sortState(){
+    state.tournaments.sort(byCreatedDesc);
+    state.posts.sort(byCreatedDesc);
+    state.registrations.sort(byCreatedAsc);
+  }
+  function setState(src){
+    var next = { social: (src && src.social) || {} };
+    COLS.forEach(function(c){ next[c] = (src && Array.isArray(src[c])) ? src[c] : []; });
+    state = next;
+    sortState();
+  }
+
+  /* Applies operations to the in-memory state (optimistic update). */
+  function applyOps(ops){
+    ops.forEach(function(o){
+      if(o.col === 'social'){
+        if(o.op === 'delete') state.social = {};
+        else if(o.op === 'set') state.social = Object.assign({}, o.data);
+        else state.social = Object.assign({}, state.social, o.data);
+        return;
+      }
+      var list = state[o.col];
+      if(!list) return;
+      var idx = list.findIndex(function(x){ return x.id === o.id; });
+      if(o.op === 'delete'){ if(idx >= 0) list.splice(idx, 1); }
+      else if(o.op === 'set'){
+        var full = Object.assign({}, o.data, {id:o.id});
+        if(idx >= 0) list[idx] = full; else list.push(full);
+      } else {
+        if(idx >= 0) Object.assign(list[idx], o.data); else list.push(Object.assign({}, o.data, {id:o.id}));
+      }
+    });
+    sortState();
+  }
+
+  var writeQueue = Promise.resolve();
+  var inflight = 0, refreshWanted = false, refreshing = null;
+
+  /* Saves a list of {op:'set'|'merge'|'delete', col, id, data}. Resolves true/false. */
+  function commit(ops){
+    ops = (ops || []).filter(Boolean).map(function(o){
+      return o.data ? Object.assign({}, o, {data: stripId(o.data)}) : o;
+    });
+    if(!ops.length) return Promise.resolve(true);
+    applyOps(ops);
+    renderAll();
+    if(!online){ saveLocal(); return Promise.resolve(true); }
+    inflight++;
+    var p = writeQueue.then(function(){
+      return fetch('/api/batch', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ops: ops})
+      }).then(function(res){ if(!res.ok) throw new Error('HTTP ' + res.status); return true; });
+    }).catch(function(){
+      toast('No se pudo guardar en el servidor. Revisa tu conexión e inténtalo de nuevo.');
+      refreshWanted = true;
+      return false;
+    }).then(function(ok){
+      inflight--;
+      if(!inflight && refreshWanted) refresh();
+      return ok;
+    });
+    writeQueue = p;
+    return p;
+  }
+
+  function refresh(){
+    refreshWanted = false;
+    if(refreshing){ refreshWanted = true; return refreshing; }
+    refreshing = fetch('/api/state', {cache:'no-store'})
+      .then(function(res){ if(!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(function(j){
+        if(inflight){ refreshWanted = true; return; } // our own writes are still on the way
+        if(j.version >= version){ version = j.version; setState(j); renderAll(); }
+      })
+      .catch(function(){})
+      .then(function(){
+        refreshing = null;
+        if(refreshWanted && !inflight) refresh();
+      });
+    return refreshing;
+  }
+  function scheduleRefresh(){
+    if(inflight){ refreshWanted = true; return; }
+    refresh();
+  }
+
+  function connectEvents(){
+    if(!window.EventSource){ setInterval(scheduleRefresh, 15000); return; }
+    var es = new EventSource('/api/events');
+    var opened = false;
+    es.onopen = function(){ if(opened) scheduleRefresh(); opened = true; };
+    es.onmessage = function(ev){
+      try{ if(JSON.parse(ev.data).version > version) scheduleRefresh(); }catch(e){}
+    };
+    // on error the browser reconnects by itself; onopen then refreshes
+  }
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden && online) scheduleRefresh();
+  });
+
   function seedExample(){
     var t1 = uid();
-    var now = new Date().toISOString();
+    var now = nowIso();
     state.tournaments = [{
       id: t1, name: 'Copa Metal Assault #1', type: '1v1 Clásico', mode: 'individual', format: 'eliminacion',
       maxPlayers: 8, date: '', rules: 'Mejor de 3 · Nivel de cartas topado a 11 · Mazo abierto · Walkover a los 10 min sin presentarse.',
@@ -618,6 +768,7 @@
       {id: uid(), tournamentId: t1, name:'LavaHound', tag:'#QJ2CG9', clan:'Metal Assault', createdAt: now},
       {id: uid(), tournamentId: t1, name:'MiniPekka', tag:'#V0R8LX', clan:'', createdAt: now}
     ];
+    state.teams = [];
     state.matches = [];
     state.posts = [{
       id: uid(), title:'¡Bienvenidos a Metal Assault!', body:'Este es el primer torneo de la comunidad. Regístrate en la pestaña Registro y prepárate para el sorteo. ¡Mucha suerte, jefes!',
@@ -629,231 +780,97 @@
   function renderAll(){
     renderInicio(); renderTorneos(); renderRegistroSelects(); renderRegistro();
     renderSorteoSelect(); renderSorteoInfo(); renderBracket(); renderLeaderboard(); renderPosts(); renderSocial();
-    saveLocalIfNoDb();
   }
-  function saveLocalIfNoDb(){ if(!db) saveLocal(); }
 
-  /* ---- init store: db capability with local fallback ---- */
-  var assetsApi = null;
   async function initStore(){
     try{
-      if(window.claude && window.claude.use){
-        db = await window.claude.use('db');
-      }
-    }catch(e){ db = null; }
-    try{
-      if(window.claude && window.claude.use){
-        assetsApi = await window.claude.use('assets');
-      }
-    }catch(e){ assetsApi = null; }
-
-    if(!db){
+      var res = await fetch('/api/state', {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      var j = await res.json();
+      online = true;
+      version = j.version;
+      setState(j);
+      renderAll();
+      connectEvents();
+      offerLocalImport();
+    }catch(e){
+      online = false;
       var local = loadLocal();
-      if(local && local.tournaments && local.tournaments.length){
-        state = local;
-      } else {
-        seedExample();
-        saveLocal();
-      }
+      if(local && local.tournaments && local.tournaments.length) setState(local);
+      else { seedExample(); saveLocal(); }
+      document.getElementById('offlineNotice').hidden = false;
       renderAll();
-      return;
     }
-
-    // db available: subscribe to collections
-    db.collection('tournaments').onSnapshot(function(snap){
-      state.tournaments = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-      state.tournaments.sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
-      renderAll();
-    }, function(){ /* silent */ });
-
-    db.collection('registrations').onSnapshot(function(snap){
-      state.registrations = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-      renderAll();
-    }, function(){});
-
-    db.collection('matches').onSnapshot(function(snap){
-      state.matches = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-      renderAll();
-    }, function(){});
-
-    db.collection('teams').onSnapshot(function(snap){
-      state.teams = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-      renderAll();
-    }, function(){});
-
-    db.collection('posts').onSnapshot(function(snap){
-      state.posts = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-      state.posts.sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
-      renderAll();
-    }, function(){});
-
-    db.doc('social/links').onSnapshot(function(snap){
-      state.social = snap.exists ? snap.data() : {};
-      renderAll();
-    }, function(){});
-
-    // seed example data into db once if empty (best-effort, ignore failures)
-    setTimeout(async function(){
-      try{
-        var snap = await db.collection('tournaments').limit(1).get();
-        if(snap.empty){
-          seedExample();
-          var tid = state.tournaments[0].id;
-          var t = state.tournaments[0];
-          await db.collection('tournaments').doc(tid).set({
-            name:t.name, type:t.type, mode:t.mode, format:t.format, maxPlayers:t.maxPlayers, date:t.date,
-            rules:t.rules, qualifiers:t.qualifiers, status:t.status, createdAt:t.createdAt
-          });
-          for(var i=0;i<state.registrations.length;i++){
-            var r = state.registrations[i];
-            await db.collection('registrations').doc(r.id).set({
-              tournamentId:r.tournamentId, name:r.name, tag:r.tag, clan:r.clan, createdAt:r.createdAt
-            });
-          }
-          for(var j=0;j<state.posts.length;j++){
-            var p = state.posts[j];
-            await db.collection('posts').doc(p.id).set({
-              title:p.title, body:p.body, tournamentId:p.tournamentId||'', createdAt:p.createdAt
-            });
-          }
-        }
-      }catch(e){ /* best-effort seed */ }
-    }, 500);
   }
+
+  /* Data saved by the previous version only lived in each browser. Offer to
+     upload it once so it becomes shared. Existing server documents win. */
+  function offerLocalImport(){
+    var flag = null;
+    try{ flag = localStorage.getItem(LS_IMPORTED); }catch(e){}
+    if(flag) return;
+    var local = loadLocal();
+    if(!local || !local.tournaments || !local.tournaments.length) return;
+    var known = {};
+    state.tournaments.forEach(function(t){ known[t.id] = true; });
+    var fresh = local.tournaments.filter(function(t){ return !known[t.id]; });
+    if(!fresh.length) return;
+    document.getElementById('importNoticeText').textContent =
+      'Este navegador tiene ' + fresh.length + ' torneo(s) guardado(s) solo aquí (versión anterior). ¿Subirlos al servidor para que todos los vean?';
+    document.getElementById('importNotice').hidden = false;
+  }
+  function markImported(){
+    try{ localStorage.setItem(LS_IMPORTED, nowIso()); }catch(e){}
+    document.getElementById('importNotice').hidden = true;
+  }
+  document.getElementById('btnImportLocal').addEventListener('click', async function(){
+    var local = loadLocal();
+    if(!local) return markImported();
+    var ops = [];
+    COLS.forEach(function(c){
+      var have = {};
+      state[c].forEach(function(x){ have[x.id] = true; });
+      (local[c] || []).forEach(function(doc){
+        if(doc && doc.id && !have[doc.id]) ops.push({op:'set', col:c, id:String(doc.id), data:doc});
+      });
+    });
+    var localSocial = local.social || {};
+    var serverHasSocial = Object.keys(state.social || {}).some(function(k){ return state.social[k]; });
+    if(!serverHasSocial && Object.keys(localSocial).some(function(k){ return localSocial[k]; })){
+      ops.push({op:'set', col:'social', id:'links', data:localSocial});
+    }
+    this.disabled = true;
+    var ok = true;
+    for(var i = 0; i < ops.length; i += 200){
+      ok = (await commit(ops.slice(i, i + 200))) && ok;
+    }
+    this.disabled = false;
+    if(ok){ markImported(); toast('Datos locales subidos al servidor.'); }
+  });
+  document.getElementById('btnDismissLocal').addEventListener('click', markImported);
 
   /* ================= DATA MUTATIONS ================= */
-  async function addTournament(t){
-    if(db){
-      try{ await db.collection('tournaments').add(t); return; }catch(e){ toast('No se pudo guardar el torneo.'); return; }
-    }
-    t.id = uid();
-    state.tournaments.unshift(t);
-    renderAll();
+  function addTournament(t){ return commit([{op:'set', col:'tournaments', id:uid(), data:t}]); }
+  function updateTournament(id, data){ return commit([{op:'merge', col:'tournaments', id:id, data:data}]); }
+  function addRegistration(r){ return commit([{op:'set', col:'registrations', id:uid(), data:r}]); }
+  function removeRegistration(id){ return commit([{op:'delete', col:'registrations', id:id}]); }
+  function deleteOpsFor(col, tournamentId){
+    return state[col].filter(function(x){ return x.tournamentId === tournamentId; })
+      .map(function(x){ return {op:'delete', col:col, id:x.id}; });
   }
-
-  async function addRegistration(r){
-    if(db){
-      try{ await db.collection('registrations').add(r); return true; }catch(e){ toast('No se pudo registrar.'); return false; }
-    }
-    r.id = uid();
-    state.registrations.push(r);
-    renderAll();
-    return true;
+  function deleteTournamentCascade(id){
+    var ops = deleteOpsFor('matches', id).concat(deleteOpsFor('teams', id), deleteOpsFor('registrations', id));
+    state.posts.forEach(function(p){
+      if(p.tournamentId === id) ops.push({op:'merge', col:'posts', id:p.id, data:{tournamentId:''}});
+    });
+    ops.push({op:'delete', col:'tournaments', id:id});
+    return commit(ops);
   }
-  async function removeRegistration(id){
-    if(db){ try{ await db.collection('registrations').doc(id).delete(); }catch(e){} return; }
-    state.registrations = state.registrations.filter(function(r){ return r.id !== id; });
-    renderAll();
-  }
-
-  async function setMatch(id, data){
-    if(db){
-      try{ await db.collection('matches').doc(id).set(data); }catch(e){ toast('No se pudo guardar la llave.'); }
-      return;
-    }
-    var idx = state.matches.findIndex(function(m){ return m.id === id; });
-    var full = Object.assign({id:id}, data);
-    if(idx >= 0) state.matches[idx] = full; else state.matches.push(full);
-    renderAll();
-  }
-  async function updateMatch(id, data){
-    if(db){
-      try{ await db.collection('matches').doc(id).update(data); }catch(e){ toast('No se pudo actualizar.'); }
-      return;
-    }
-    var idx = state.matches.findIndex(function(m){ return m.id === id; });
-    if(idx >= 0) Object.assign(state.matches[idx], data);
-    renderAll();
-  }
-  async function deleteMatchesFor(tournamentId){
-    var toDelete = state.matches.filter(function(m){ return m.tournamentId === tournamentId; });
-    if(db){
-      for(var i=0;i<toDelete.length;i++){
-        try{ await db.collection('matches').doc(toDelete[i].id).delete(); }catch(e){}
-      }
-      return;
-    }
-    state.matches = state.matches.filter(function(m){ return m.tournamentId !== tournamentId; });
-    renderAll();
-  }
-  async function setTeam(id, data){
-    if(db){
-      try{ await db.collection('teams').doc(id).set(data); }catch(e){ toast('No se pudo guardar el equipo.'); }
-      return;
-    }
-    var idx = state.teams.findIndex(function(x){ return x.id === id; });
-    var full = Object.assign({id:id}, data);
-    if(idx >= 0) state.teams[idx] = full; else state.teams.push(full);
-    renderAll();
-  }
-  async function deleteTeamsFor(tournamentId){
-    var toDelete = state.teams.filter(function(x){ return x.tournamentId === tournamentId; });
-    if(db){
-      for(var i=0;i<toDelete.length;i++){
-        try{ await db.collection('teams').doc(toDelete[i].id).delete(); }catch(e){}
-      }
-      return;
-    }
-    state.teams = state.teams.filter(function(x){ return x.tournamentId !== tournamentId; });
-    renderAll();
-  }
-
-  async function updateTournament(id, data){
-    if(db){ try{ await db.collection('tournaments').doc(id).update(data); }catch(e){} return; }
-    var t = state.tournaments.find(function(t){ return t.id === id; });
-    if(t) Object.assign(t, data);
-    renderAll();
-  }
-
-  async function deleteRegistrationsFor(tournamentId){
-    var toDelete = state.registrations.filter(function(r){ return r.tournamentId === tournamentId; });
-    if(db){
-      for(var i=0;i<toDelete.length;i++){
-        try{ await db.collection('registrations').doc(toDelete[i].id).delete(); }catch(e){}
-      }
-      return;
-    }
-    state.registrations = state.registrations.filter(function(r){ return r.tournamentId !== tournamentId; });
-    renderAll();
-  }
-
-  async function unlinkPostsFor(tournamentId){
-    var toUnlink = state.posts.filter(function(p){ return p.tournamentId === tournamentId; });
-    if(db){
-      for(var i=0;i<toUnlink.length;i++){
-        try{ await db.collection('posts').doc(toUnlink[i].id).update({tournamentId:''}); }catch(e){}
-      }
-      return;
-    }
-    state.posts.forEach(function(p){ if(p.tournamentId === tournamentId) p.tournamentId = ''; });
-    renderAll();
-  }
-
-  async function deleteTournamentCascade(id){
-    await deleteMatchesFor(id);
-    await deleteTeamsFor(id);
-    await deleteRegistrationsFor(id);
-    await unlinkPostsFor(id);
-    if(db){
-      try{ await db.collection('tournaments').doc(id).delete(); }catch(e){ toast('No se pudo eliminar el torneo.'); }
-      return;
-    }
-    state.tournaments = state.tournaments.filter(function(t){ return t.id !== id; });
-    renderAll();
-  }
-
-  async function addPost(p){
-    if(db){ try{ await db.collection('posts').add(p); }catch(e){ toast('No se pudo publicar.'); } return; }
-    p.id = uid();
-    state.posts.unshift(p);
-    renderAll();
-  }
-
-  async function saveSocial(data){
-    if(db){ try{ await db.doc('social/links').set(data); toast('Enlaces guardados.'); }catch(e){ toast('No se pudo guardar.'); } return; }
-    state.social = data;
-    renderAll();
-    toast('Enlaces guardados.');
+  function addPost(p){ return commit([{op:'set', col:'posts', id:uid(), data:p}]); }
+  function saveSocial(data){
+    return commit([{op:'set', col:'social', id:'links', data:data}]).then(function(ok){
+      toast(ok ? 'Enlaces guardados.' : 'No se pudo guardar.');
+    });
   }
 
   /* ================= RENDER: INICIO ================= */
@@ -862,7 +879,7 @@
     var players = {};
     state.registrations.forEach(function(r){ players[r.tag] = true; });
     document.getElementById('statJugadores').textContent = Object.keys(players).length;
-    var jugadas = state.matches.filter(function(m){ return m.winnerId && m.winnerId !== 'BYE'; }).length;
+    var jugadas = state.matches.filter(function(m){ return m.winnerId && m.playerAId && m.playerBId; }).length;
     document.getElementById('statPartidas').textContent = jugadas;
     var abiertos = state.tournaments.filter(function(t){ return t.status === 'abierto'; });
     document.getElementById('statAbiertos').textContent = abiertos.length;
@@ -891,7 +908,7 @@
       '</div>';
   }
   function fmtLabel(format){
-    return format === 'liga' ? 'Liga · todos contra todos' : 'Eliminación simple';
+    return format === 'liga' ? 'Liga · todos contra todos + final' : 'Grupos + eliminatoria';
   }
   function modePill(t){
     return t.mode === 'equipos' ? '<span class="pill">👥 Equipos 2v2</span>' : '';
@@ -901,6 +918,10 @@
   function renderTorneos(){
     document.getElementById('torneosCount').textContent = state.tournaments.length + ' registrados';
     var grid = document.getElementById('torneosGrid');
+    // keep a half-typed delete key when a live update re-renders the list
+    var typingKey = grid.querySelector('[data-delkey-input]');
+    var typedKeyValue = typingKey ? typingKey.value : '';
+    var typedKeyFocused = typingKey && document.activeElement === typingKey;
     if(!state.tournaments.length){
       grid.innerHTML = '<div class="empty"><b>Aún no hay torneos</b>Usa el formulario para crear el primero.</div>';
       return;
@@ -931,6 +952,10 @@
       '</div>';
     }).join('');
 
+    var restoredKey = grid.querySelector('[data-delkey-input]');
+    if(restoredKey && typedKeyValue){ restoredKey.value = typedKeyValue; }
+    if(restoredKey && typedKeyFocused){ restoredKey.focus(); }
+
     grid.querySelectorAll('[data-cycle]').forEach(function(btn){
       btn.addEventListener('click', function(){
         var t = state.tournaments.find(function(t){ return t.id === btn.dataset.cycle; });
@@ -944,6 +969,7 @@
       btn.addEventListener('click', function(){
         showTab('sorteo');
         document.getElementById('sTorneo').value = btn.dataset.gotoSorteo;
+        renderSorteoInfo();
         renderBracket();
       });
     });
@@ -1015,6 +1041,7 @@
     document.getElementById('tFormHint').textContent = 'Modificando "' + t.name + '". Los cambios no afectan un sorteo ya realizado.';
     document.getElementById('tFormSubmit').textContent = 'Guardar cambios';
     document.getElementById('tFormCancel').hidden = false;
+    renderFormatHint();
     document.querySelector('#formTorneo').scrollIntoView({behavior:'smooth', block:'start'});
   }
   function resetTournamentForm(){
@@ -1029,8 +1056,23 @@
     document.getElementById('tFormHint').textContent = 'Define el tipo y las reglas antes de abrir inscripciones.';
     document.getElementById('tFormSubmit').textContent = 'Crear torneo';
     document.getElementById('tFormCancel').hidden = true;
+    renderFormatHint();
   }
   document.getElementById('tFormCancel').addEventListener('click', resetTournamentForm);
+
+  function renderFormatHint(){
+    var n = parseInt(document.getElementById('tMax').value, 10) || 0;
+    var format = document.getElementById('tFormat').value;
+    var equipos = document.getElementById('tMode').value === 'equipos';
+    var entrants = equipos ? Math.floor(n / 2) : n;
+    document.getElementById('tFormatHint').textContent =
+      'Con ' + entrants + (equipos ? ' equipos: ' : ' participantes: ') + B.describeFormat(entrants, format);
+  }
+  ['tMax','tFormat','tMode'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', renderFormatHint);
+    document.getElementById(id).addEventListener('change', renderFormatHint);
+  });
+  renderFormatHint();
 
   document.getElementById('formTorneo').addEventListener('submit', function(e){
     e.preventDefault();
@@ -1135,7 +1177,7 @@
     }
   });
 
-  /* ================= RENDER: SORTEO & BRACKET / LIGA ================= */
+  /* ================= RENDER: SORTEO & BRACKET ================= */
   function renderSorteoSelect(){
     var sel = document.getElementById('sTorneo');
     var current = sel.value;
@@ -1152,16 +1194,7 @@
     var tid = document.getElementById('sTorneo').value;
     var t = state.tournaments.find(function(t){ return t.id === tid; });
     var btn = document.getElementById('btnSorteo');
-    if(!t){ btn.textContent = '🎲 Realizar sorteo aleatorio'; return; }
-    if(t.mode === 'equipos' && t.format === 'liga'){
-      btn.textContent = '🎲 Sortear equipos y jugar todos contra todos';
-    } else if(t.mode === 'equipos'){
-      btn.textContent = '🎲 Sortear equipos (2v2) y armar llave';
-    } else if(t.format === 'liga'){
-      btn.textContent = '🎲 Sortear todos contra todos';
-    } else {
-      btn.textContent = '🎲 Realizar sorteo aleatorio';
-    }
+    btn.textContent = (t && t.mode === 'equipos') ? '🎲 Sortear equipos (2v2) y armar grupos' : '🎲 Realizar sorteo aleatorio';
   }
 
   function shuffle(arr){
@@ -1173,14 +1206,14 @@
     return a;
   }
 
-  /* Build the entrant list for a tournament: individual players, or
-     freshly-paired 2-player teams that then stay fixed for the event. */
-  async function buildEntrants(t){
+  /* Entrants for the draw: individual players, or freshly-paired 2-player
+     teams that then stay fixed for the event. Returns {entrants, ops}. */
+  function buildEntrants(t){
     var regs = shuffle(state.registrations.filter(function(r){ return r.tournamentId === t.id; }));
     if(t.mode !== 'equipos'){
-      return regs.map(function(r){ return {id: r.id, label: r.name + ' ' + r.tag}; });
+      return { entrants: regs.map(function(r){ return {id: r.id, label: r.name + ' ' + r.tag}; }), ops: [] };
     }
-    await deleteTeamsFor(t.id);
+    var ops = deleteOpsFor('teams', t.id);
     var leftover = null;
     if(regs.length % 2 !== 0){ leftover = regs.pop(); }
     var teams = [];
@@ -1188,169 +1221,90 @@
       var p1 = regs[i], p2 = regs[i+1];
       var id = 'team-' + uid();
       var label = p1.name + ' & ' + p2.name;
-      var data = {
+      ops.push({op:'set', col:'teams', id:id, data:{
         tournamentId: t.id, player1Id: p1.id, player1Name: p1.name + ' ' + p1.tag,
-        player2Id: p2.id, player2Name: p2.name + ' ' + p2.tag, name: label, createdAt: new Date().toISOString()
-      };
-      await setTeam(id, data);
+        player2Id: p2.id, player2Name: p2.name + ' ' + p2.tag, name: label, createdAt: nowIso()
+      }});
       teams.push({id: id, label: label});
     }
-    if(leftover) toast('Número impar de jugadores: ' + leftover.name + ' quedó sin pareja y no entra en el sorteo.');
-    return teams;
+    return { entrants: teams, ops: ops, leftover: leftover };
+  }
+
+  function hasResults(tid){
+    return state.matches.some(function(m){
+      return m.tournamentId === tid && m.winnerId && m.playerAId && m.playerBId;
+    });
   }
 
   document.getElementById('btnSorteo').addEventListener('click', async function(){
     var tid = document.getElementById('sTorneo').value;
     var t = state.tournaments.find(function(t){ return t.id === tid; });
     if(!t){ toast('Selecciona un torneo primero.'); return; }
+    if(hasResults(tid) && !confirm('Este torneo ya tiene resultados. ¿Rehacer el sorteo y borrarlos?')) return;
 
-    var entrants = await buildEntrants(t);
-    var minEntrants = 2;
-    if(entrants.length < minEntrants){ toast('Se necesitan al menos ' + minEntrants + (t.mode === 'equipos' ? ' equipos completos.' : ' jugadores inscritos.')); return; }
-
-    await deleteMatchesFor(tid);
-
-    if(t.format === 'liga'){
-      var jornadas = buildRoundRobin(tid, entrants);
-      await updateTournament(tid, {status:'en curso', ligaJornadas: jornadas, totalRounds: null, champDecided:false});
-      toast('Sorteo de liga realizado: ' + entrants.length + (t.mode === 'equipos' ? ' equipos' : ' jugadores') + ', todos contra todos.');
-    } else {
-      var totalRounds = await buildBracket(tid, entrants);
-      await updateTournament(tid, {status:'en curso', totalRounds: totalRounds, ligaJornadas: null});
-      toast('Sorteo realizado: ' + entrants.length + (t.mode === 'equipos' ? ' equipos' : ' jugadores') + '.');
+    var built = buildEntrants(t);
+    if(built.entrants.length < 2){
+      toast('Se necesitan al menos 2' + (t.mode === 'equipos' ? ' equipos completos.' : ' jugadores inscritos.'));
+      return;
     }
-    renderBracket();
+    var draw = B.createDraw(tid, t.format, built.entrants, nowIso());
+    var ops = deleteOpsFor('matches', tid).concat(built.ops);
+    draw.matches.forEach(function(m){ ops.push({op:'set', col:'matches', id:m.id, data:m}); });
+    ops.push({op:'merge', col:'tournaments', id:tid, data: Object.assign(
+      {status:'en curso', totalRounds:null, ligaJornadas:null, champDecided:null}, draw.patch)});
+    var ok = await commit(ops);
+    if(!ok) return;
+    if(built.leftover) toast('Número impar de jugadores: ' + built.leftover.name + ' quedó sin pareja y no entra en el sorteo.');
+    else toast('Sorteo realizado. ' + B.describeFormat(built.entrants.length, t.format));
   });
 
   document.getElementById('btnResetBracket').addEventListener('click', async function(){
     var tid = document.getElementById('sTorneo').value;
     if(!tid) return;
-    await deleteMatchesFor(tid);
-    await deleteTeamsFor(tid);
-    await updateTournament(tid, {status:'abierto', totalRounds:null, ligaJornadas:null, champDecided:false});
-    toast('Sorteo reiniciado.');
-    renderBracket();
+    if(!confirm('¿Reiniciar la llave? Se borran el sorteo y todos los resultados de este torneo.')) return;
+    var ops = deleteOpsFor('matches', tid).concat(deleteOpsFor('teams', tid));
+    ops.push({op:'merge', col:'tournaments', id:tid, data:{
+      status:'abierto', groups:null, knockoutRounds:null, totalRounds:null, ligaJornadas:null, champDecided:null
+    }});
+    if(await commit(ops)) toast('Sorteo reiniciado.');
   });
 
-  /* ---- elimination bracket ---- */
-  async function buildBracket(tid, entrants){
-    var size = 2; while(size < entrants.length) size *= 2;
-    var totalRounds = Math.log2(size);
-    var round1 = [];
-    for(var i = 0; i < size / 2; i++){
-      round1.push({a: entrants[i*2] || null, b: entrants[i*2+1] || null});
+  function resultOps(t, res){
+    var ops = res.set.map(function(x){ return {op:'set', col:'matches', id:x.id, data:x}; })
+      .concat(res.del.map(function(id){ return {op:'delete', col:'matches', id:id}; }));
+    if(res.patch) ops.push({op:'merge', col:'tournaments', id:t.id, data:res.patch});
+    return ops;
+  }
+
+  /* side 'A' / 'B' = mark (or change) the winner; null = remove the result. */
+  function onMatchAction(matchId, side){
+    var m = state.matches.find(function(x){ return x.id === matchId; });
+    if(!m) return;
+    var t = state.tournaments.find(function(x){ return x.id === m.tournamentId; });
+    if(!t) return;
+    var res = B.applyResult(t, state.matches, matchId, side, nowIso());
+    if(!res || !res.changed) return;
+    if(res.koReset){
+      var msg = side
+        ? 'Este cambio altera quién clasifica: la eliminatoria se rearmará y se perderán ' + res.koReset + ' resultado(s) ya marcados en ella. ¿Continuar?'
+        : 'Al quitar este resultado la fase de grupos queda incompleta: se borrará la eliminatoria con ' + res.koReset + ' resultado(s). ¿Continuar?';
+      if(!confirm(msg)) return;
+    } else if(res.cleared){
+      if(!confirm('Este cambio también borra ' + res.cleared + ' resultado(s) de rondas posteriores que dependían de este partido. ¿Continuar?')) return;
     }
-    for(var r = 0; r < round1.length; r++){
-      var m = round1[r];
-      var isBye = !m.a || !m.b;
-      var data = {
-        tournamentId: tid, round: 1, slot: r,
-        playerAId: m.a ? m.a.id : '', playerAName: m.a ? m.a.label : '',
-        playerBId: m.b ? m.b.id : '', playerBName: m.b ? m.b.label : '',
-        winnerId: isBye ? (m.a ? m.a.id : (m.b ? m.b.id : '')) : '',
-        winnerName: isBye ? (m.a ? m.a.label : (m.b ? m.b.label : '')) : '',
-        createdAt: new Date().toISOString()
-      };
-      await setMatch(matchIdFor(tid, 1, r), data);
-    }
-    return totalRounds;
+    commit(resultOps(t, res));
+    if(!side) toast('Resultado quitado. Ahora elige al ganador correcto.');
   }
 
-  async function advanceWinner(tournamentId, round, slot, totalRounds, winnerId, winnerName){
-    await updateMatch(matchIdFor(tournamentId, round, slot), {winnerId: winnerId, winnerName: winnerName});
-    if(round >= totalRounds) return; // final
-    var nextRound = round + 1;
-    var nextSlot = Math.floor(slot / 2);
-    var nextId = matchIdFor(tournamentId, nextRound, nextSlot);
-    var existing = state.matches.find(function(m){ return m.id === nextId; });
-    var isA = (slot % 2 === 0);
-    var patch = { tournamentId: tournamentId, round: nextRound, slot: nextSlot };
-    if(isA){ patch.playerAId = winnerId; patch.playerAName = winnerName; }
-    else { patch.playerBId = winnerId; patch.playerBName = winnerName; }
-    if(!existing){
-      patch.playerAId = isA ? winnerId : '';
-      patch.playerAName = isA ? winnerName : '';
-      patch.playerBId = !isA ? winnerId : '';
-      patch.playerBName = !isA ? winnerName : '';
-      patch.winnerId = ''; patch.winnerName = '';
-      patch.createdAt = new Date().toISOString();
-      await setMatch(nextId, patch);
-    } else {
-      await updateMatch(nextId, patch);
-    }
-  }
-  function matchIdFor(tournamentId, round, slot){
-    return 'm-' + tournamentId + '-r' + round + 's' + slot;
-  }
+  document.getElementById('bracketArea').addEventListener('click', function(e){
+    var el = e.target.closest('[data-pick],[data-undo]');
+    if(!el) return;
+    if(el.dataset.undo){ onMatchAction(el.dataset.undo, null); return; }
+    var parts = el.dataset.pick.split('|');
+    onMatchAction(parts[0], parts[1]);
+  });
 
-  /* ---- round-robin (liga) ---- */
-  function buildRoundRobin(tid, entrants){
-    var list = entrants.slice();
-    if(list.length % 2 !== 0) list.push({id:'BYE', label:'(Descansa)'});
-    var n = list.length;
-    var jornadas = n - 1;
-    var fixed = list[0];
-    var rest = list.slice(1);
-    var matchDocs = [];
-    for(var round = 1; round <= jornadas; round++){
-      var order = [fixed].concat(rest);
-      var slot = 0;
-      for(var i = 0; i < n / 2; i++){
-        var a = order[i], b = order[n - 1 - i];
-        if(a.id === 'BYE' || b.id === 'BYE') continue;
-        matchDocs.push({
-          id: 'lg-' + tid + '-r' + round + 's' + slot,
-          data: {
-            tournamentId: tid, kind:'liga', round: round, slot: slot,
-            playerAId: a.id, playerAName: a.label, playerBId: b.id, playerBName: b.label,
-            winnerId: '', winnerName: '', createdAt: new Date().toISOString()
-          }
-        });
-        slot++;
-      }
-      rest.unshift(rest.pop()); // rotate for circle method
-    }
-    matchDocs.forEach(function(md){ setMatch(md.id, md.data); });
-    return jornadas;
-  }
-
-  function ligaStandings(tid, matches){
-    var stats = {};
-    function ensure(id, label){ if(!stats[id]) stats[id] = {id:id, label:label, wins:0, losses:0}; return stats[id]; }
-    matches.forEach(function(m){
-      ensure(m.playerAId, m.playerAName); ensure(m.playerBId, m.playerBName);
-      if(!m.winnerId) return;
-      var aWon = m.winnerId === m.playerAId;
-      ensure(m.playerAId, m.playerAName).wins += aWon ? 1 : 0;
-      ensure(m.playerAId, m.playerAName).losses += aWon ? 0 : 1;
-      ensure(m.playerBId, m.playerBName).wins += aWon ? 0 : 1;
-      ensure(m.playerBId, m.playerBName).losses += aWon ? 1 : 0;
-    });
-    return Object.values(stats).sort(function(x,y){
-      if(y.wins !== x.wins) return y.wins - x.wins;
-      return x.losses - y.losses;
-    });
-  }
-
-  async function maybeCreateLigaFinal(t, ligaMatches, standings){
-    if(!ligaMatches.length) return;
-    var allDecided = ligaMatches.every(function(m){ return !!m.winnerId; });
-    if(!allDecided) return;
-    var qualifiers = t.qualifiers || 2;
-    var top = standings.slice(0, qualifiers);
-    if(top.length < 2) return;
-    var finalId = 'final-' + t.id;
-    var exists = state.matches.find(function(m){ return m.id === finalId; });
-    if(exists) return;
-    await setMatch(finalId, {
-      tournamentId: t.id, kind:'final', round: (t.ligaJornadas || 1) + 1, slot: 0,
-      playerAId: top[0].id, playerAName: top[0].label,
-      playerBId: top[1].id, playerBName: top[1].label,
-      winnerId:'', winnerName:'', createdAt: new Date().toISOString()
-    });
-  }
-
-  /* ---- shared render ---- */
+  var repairScheduled = {};
   function renderBracket(){
     var tid = document.getElementById('sTorneo').value;
     var t = state.tournaments.find(function(t){ return t.id === tid; });
@@ -1362,127 +1316,111 @@
       return;
     }
     var regCount = state.registrations.filter(function(r){ return r.tournamentId === tid; }).length;
-    var matches = state.matches.filter(function(m){ return m.tournamentId === tid; });
-    var modeTxt = t.mode === 'equipos' ? (state.teams.filter(function(x){return x.tournamentId===tid;}).length + ' equipos') : (regCount + ' inscritos');
-    info.textContent = modeTxt + ' · ' + (t.format === 'liga' ? 'Formato liga (clasifican ' + (t.qualifiers||2) + ')' : 'Eliminación simple') + ' · ' + (matches.length ? 'Sorteo realizado' : 'Aún sin sorteo');
+    var teamCount = state.teams.filter(function(x){ return x.tournamentId === tid; }).length;
+    var ms = state.matches.filter(function(m){ return m.tournamentId === tid; }).map(B.normalize);
+    var who = t.mode === 'equipos' ? (ms.length ? teamCount + ' equipos' : regCount + ' inscritos') : regCount + ' inscritos';
+    var entrants = t.mode === 'equipos' ? Math.floor(regCount / 2) : regCount;
+    info.textContent = who + ' · ' + fmtLabel(t.format) + ' · ' +
+      (ms.length ? 'Sorteo realizado' : 'Aún sin sorteo — ' + B.describeFormat(entrants, t.format));
 
-    if(!matches.length){
-      area.innerHTML = '<div class="empty"><b>Sin sorteo todavía</b>Presiona el botón de arriba para emparejar a los inscritos.</div>';
+    if(!ms.length){
+      area.innerHTML = '<div class="empty"><b>Sin sorteo todavía</b>Presiona el botón de arriba para armar los grupos con los inscritos.</div>';
       return;
     }
-
-    if(t.format === 'liga'){
-      renderLigaArea(area, t, matches);
-    } else {
-      renderEliminationArea(area, t, matches);
+    var st = B.structure(t, ms);
+    // groups finished but knockout missing (e.g. data from the previous version)
+    if(st.groups.length && !ms.some(B.isKoMatch) && !repairScheduled[tid]){
+      var fix = B.syncKnockout(t, state.matches, nowIso());
+      if(fix){
+        repairScheduled[tid] = true;
+        setTimeout(function(){ commit(resultOps(t, fix)); }, 0);
+      }
     }
+
+    var html = '';
+    if(st.groups.length) html += renderGroups(t, st, ms);
+    html += renderKnockout(st, ms);
+    var champ = B.champion(t, state.matches);
+    if(champ) html += '<div class="champion-banner">🏆 Campeón: <b>' + esc(champ.name) + '</b></div>';
+    area.innerHTML = html;
   }
 
-  function renderEliminationArea(area, t, matches){
-    var tid = t.id;
-    var totalRounds = t.totalRounds || Math.max.apply(null, matches.map(function(m){ return m.round; }));
-    var roundNames = {};
-    for(var r = 1; r <= totalRounds; r++){
-      var remaining = totalRounds - r;
-      roundNames[r] = remaining === 0 ? 'Final' : remaining === 1 ? 'Semifinal' : remaining === 2 ? 'Cuartos' : 'Ronda ' + r;
-    }
-    var cols = [];
-    for(var round = 1; round <= totalRounds; round++){
-      var roundMatches = matches.filter(function(m){ return m.round === round; }).sort(function(a,b){ return a.slot - b.slot; });
-      var matchHtml = roundMatches.map(function(m){ return renderMatchCard(m, false); }).join('');
-      cols.push('<div class="round-col"><div class="round-title">' + roundNames[round] + '</div>' + matchHtml + '</div>');
-    }
-    area.innerHTML = '<div class="bracket-wrap"><div class="bracket">' + cols.join('') + '</div></div>';
-
-    var finalMatch = matches.find(function(m){ return m.round === totalRounds; });
-    if(finalMatch && finalMatch.winnerId){
-      area.innerHTML += '<div class="champion-banner">🏆 Campeón: <b>' + esc(finalMatch.winnerName) + '</b></div>';
-      if(t.status !== 'finalizado') updateTournament(tid, {status:'finalizado'});
-    }
-
-    area.querySelectorAll('[data-pick]').forEach(function(el){
-      el.addEventListener('click', function(){
-        var parts = el.dataset.pick.split('|');
-        var round = parseInt(parts[0],10), slot = parseInt(parts[1],10), side = parts[2];
-        var m = matches.find(function(m){ return m.round === round && m.slot === slot; });
-        if(!m) return;
-        if(side === 'A' && !m.playerAId) return;
-        if(side === 'B' && !m.playerBId) return;
-        var winnerId = side === 'A' ? m.playerAId : m.playerBId;
-        var winnerName = side === 'A' ? m.playerAName : m.playerBName;
-        advanceWinner(tid, round, slot, totalRounds, winnerId, winnerName).then(function(){ renderBracket(); });
-      });
+  function renderGroups(t, st, ms){
+    var unit = t.mode === 'equipos' ? 'Equipo' : 'Jugador';
+    var cards = st.groups.map(function(g, gi){
+      var gms = B.matchesOfGroup(ms, gi);
+      var rows = B.groupStandings(g, gms);
+      var done = gms.length > 0 && gms.every(function(m){ return !!m.winnerId; });
+      var table = '<div class="table-wrap"><table style="min-width:0;"><thead><tr><th style="width:40px;">#</th><th>' + unit +
+        '</th><th class="num">PJ</th><th class="num">PG</th><th class="num">PP</th></tr></thead><tbody>' +
+        rows.map(function(r, i){
+          var q = i < 2;
+          return '<tr' + (q ? ' class="q"' : '') + '><td><span class="rank">' + (i+1) + '</span></td><td>' + esc(r.label) +
+            (q && done ? ' <span class="pill live" style="padding:1px 7px;">Clasifica</span>' : '') +
+            (done && r.tie === 'sorteo' ? ' <span class="muted" style="font-size:11px;" title="Empate en victorias y en duelo directo: decide el orden del sorteo">(desempate por sorteo)</span>' : '') +
+            '</td><td class="num">' + r.played + '</td><td class="num">' + r.wins + '</td><td class="num">' + r.losses + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+      var byRound = {};
+      gms.forEach(function(m){ (byRound[m.round] = byRound[m.round] || []).push(m); });
+      var rounds = Object.keys(byRound).sort(function(a,b){ return a - b; }).map(function(r){
+        return '<div class="jornada">Jornada ' + r + '</div><div class="group-matches">' +
+          byRound[r].sort(function(a,b){ return a.slot - b.slot; }).map(renderMatchCard).join('') + '</div>';
+      }).join('');
+      return '<div class="group-card"><h3>' + esc(g.name) + '</h3>' + table + rounds + '</div>';
     });
+    return '<h2 class="stage-title">Fase de grupos</h2><p class="help-line">Clasifican los 2 mejores de cada grupo. Desempate: duelo directo y, si persiste, el orden del sorteo.</p>' +
+      '<div class="groups-grid">' + cards.join('') + '</div>';
   }
 
-  function renderLigaArea(area, t, matches){
-    var tid = t.id;
-    var ligaMatches = matches.filter(function(m){ return m.kind === 'liga'; }).sort(function(a,b){ return a.round - b.round || a.slot - b.slot; });
-    var finalMatch = matches.find(function(m){ return m.kind === 'final'; });
-    var standings = ligaStandings(tid, ligaMatches);
-    var qualifiers = t.qualifiers || 2;
-
-    maybeCreateLigaFinal(t, ligaMatches, standings);
-
-    var jornadas = t.ligaJornadas || Math.max.apply(null, ligaMatches.map(function(m){ return m.round; }));
+  function renderKnockout(st, ms){
+    var K = st.K;
+    var ko = ms.filter(B.isKoMatch);
+    var bySlot = {};
+    ko.forEach(function(m){ bySlot[m.round + ':' + m.slot] = m; });
+    var placeholders = (st.groups.length && !ko.length) ? B.placeholderPairs(st.groups) : null;
     var cols = [];
-    for(var round = 1; round <= jornadas; round++){
-      var roundMatches = ligaMatches.filter(function(m){ return m.round === round; });
-      if(!roundMatches.length) continue;
-      var html = roundMatches.map(function(m){ return renderMatchCard(m, true); }).join('');
-      cols.push('<div class="round-col"><div class="round-title">Jornada ' + round + '</div>' + html + '</div>');
+    for(var r = 1; r <= K; r++){
+      var n = Math.pow(2, K - r), cards = '';
+      for(var s = 0; s < n; s++){
+        var m = bySlot[r + ':' + s];
+        if(m) cards += renderMatchCard(m);
+        else if(r === 1 && placeholders) cards += placeholderCard(placeholders[s][0], placeholders[s][1]);
+        else cards += placeholderCard('Por definir', 'Por definir');
+      }
+      cols.push('<div class="round-col"><div class="round-title">' + B.roundName(r, K) + '</div>' + cards + '</div>');
     }
-    if(finalMatch){
-      cols.push('<div class="round-col"><div class="round-title">Gran Final</div>' + renderMatchCard(finalMatch, false, t.totalRoundsForFinal) + '</div>');
-    }
-    area.innerHTML = '<div class="bracket-wrap"><div class="bracket">' + cols.join('') + '</div></div>';
-
-    var standingsHtml = '<div class="table-wrap" style="margin-top:18px;"><table><thead><tr><th style="width:50px;">#</th><th>' +
-      (t.mode === 'equipos' ? 'Equipo' : 'Jugador') + '</th><th class="num">PG</th><th class="num">PP</th><th></th></tr></thead><tbody>' +
-      standings.map(function(s, i){
-        var q = i < qualifiers;
-        return '<tr' + (q ? ' style="background:color-mix(in srgb, var(--gold) 8%, transparent);"' : '') + '><td><span class="rank">' + (i+1) + '</span></td><td>' + esc(s.label) + '</td><td class="num mono">' + s.wins + '</td><td class="num mono">' + s.losses + '</td><td>' + (q ? '<span class="pill live">Clasifica</span>' : '') + '</td></tr>';
-      }).join('') + '</tbody></table></div>';
-    area.innerHTML += '<div class="sechead" style="margin-top:22px;"><h2 style="font-size:17px;">Tabla de posiciones</h2><span class="sub">Clasifican los mejores ' + qualifiers + '</span></div>' + standingsHtml;
-
-    if(finalMatch && finalMatch.winnerId){
-      area.innerHTML += '<div class="champion-banner">🏆 Campeón: <b>' + esc(finalMatch.winnerName) + '</b></div>';
-      if(t.status !== 'finalizado') updateTournament(tid, {status:'finalizado'});
-    }
-
-    area.querySelectorAll('[data-pick]').forEach(function(el){
-      el.addEventListener('click', async function(){
-        var parts = el.dataset.pick.split('|');
-        var kind = parts[0], round = parseInt(parts[1],10), slot = parseInt(parts[2],10), side = parts[3];
-        var m = matches.find(function(m){ return (m.kind||'liga') === kind && m.round === round && m.slot === slot; });
-        if(!m || m.winnerId) return;
-        if(side === 'A' && !m.playerAId) return;
-        if(side === 'B' && !m.playerBId) return;
-        var winnerId = side === 'A' ? m.playerAId : m.playerBId;
-        var winnerName = side === 'A' ? m.playerAName : m.playerBName;
-        await updateMatch(m.id, {winnerId: winnerId, winnerName: winnerName});
-        renderBracket();
-      });
-    });
+    var head = st.groups.length
+      ? '<h2 class="stage-title">Eliminatoria</h2>' + (placeholders ? '<p class="help-line">Se arma automáticamente al terminar la fase de grupos (1° de un grupo contra 2° de otro).</p>' : '')
+      : '';
+    return head + '<div class="bracket-wrap"><div class="bracket">' + cols.join('') + '</div></div>';
   }
 
-  function renderMatchCard(m, isLiga){
-    var aReady = !!m.playerAId, bReady = !!m.playerBId;
-    var aWin = m.winnerId && m.winnerId === m.playerAId;
-    var bWin = m.winnerId && m.winnerId === m.playerBId;
-    var locked = !!m.winnerId;
-    var kind = m.kind || 'bracket';
-    function slotHtml(name, ready, isWin, isLose, side){
-      var cls = 'slot' + (!ready ? ' tbd' : '') + (isWin ? ' winner' : '') + (isLose ? ' loser' : '');
-      var clickable = ready && !locked;
-      var pickKey = kind === 'bracket' ? (m.round + '|' + m.slot + '|' + side) : (kind + '|' + m.round + '|' + m.slot + '|' + side);
-      var attr = clickable ? ' data-pick="' + pickKey + '"' : '';
-      return '<div class="' + cls + '"' + attr + ' style="' + (clickable ? 'cursor:pointer;' : '') + '"><span>' + (ready ? esc(name) : 'Por definir') + '</span></div>';
+  function placeholderCard(a, b){
+    return '<div class="match"><div class="slot placeholder"><span>' + esc(a) + '</span></div>' +
+      '<div class="slot placeholder"><span>' + esc(b) + '</span></div></div>';
+  }
+
+  function renderMatchCard(m){
+    var decided = !!m.winnerId;
+    var full = !!(m.playerAId && m.playerBId);
+    function slotHtml(side){
+      var id = side === 'A' ? m.playerAId : m.playerBId;
+      var name = side === 'A' ? m.playerAName : m.playerBName;
+      if(!id){
+        return '<div class="slot ' + (m.bye ? 'bye' : 'tbd') + '"><span>' + (m.bye ? 'Pasa directo (BYE)' : 'Por definir') + '</span></div>';
+      }
+      var isWin = decided && m.winnerId === id;
+      var cls = 'slot' + (isWin ? ' winner' : '') + (decided && !isWin ? ' loser' : '');
+      var canPick = full && !isWin;
+      var attr = canPick
+        ? ' data-pick="' + esc(m.id) + '|' + side + '" title="' + (decided ? 'Cambiar ganador a ' + esc(name) : 'Marcar como ganador') + '"'
+        : '';
+      return '<div class="' + cls + '"' + attr + '><span>' + esc(name) + '</span></div>';
     }
-    return '<div class="match' + (locked ? ' decided' : '') + '">' +
-      slotHtml(m.playerAName, aReady, aWin, bWin && locked, 'A') +
-      slotHtml(m.playerBName, bReady, bWin, aWin && locked, 'B') +
-      '</div>';
+    var foot = (decided && full && !m.bye)
+      ? '<div class="match-foot"><button class="undo-btn" type="button" data-undo="' + esc(m.id) + '" title="Quitar este resultado para elegir al ganador correcto">↺ Quitar resultado</button></div>'
+      : '';
+    return '<div class="match' + (decided ? ' decided' : '') + '">' + slotHtml('A') + slotHtml('B') + foot + '</div>';
   }
 
   /* ================= RENDER: CLASIFICACION ================= */
@@ -1493,26 +1431,16 @@
       return stats[id];
     }
     state.matches.forEach(function(m){
-      if(!m.winnerId) return;
-      if(m.playerAId && m.playerAName) ensure(m.playerAId, m.playerAName);
-      if(m.playerBId && m.playerBName) ensure(m.playerBId, m.playerBName);
-      if(m.playerAId && m.playerBId){
-        // real match with two sides (skip byes counted as no-op loss)
-        var winnerIsA = m.winnerId === m.playerAId;
-        ensure(m.playerAId, m.playerAName).wins += winnerIsA ? 1 : 0;
-        ensure(m.playerAId, m.playerAName).losses += winnerIsA ? 0 : 1;
-        ensure(m.playerBId, m.playerBName).wins += winnerIsA ? 0 : 1;
-        ensure(m.playerBId, m.playerBName).losses += winnerIsA ? 1 : 0;
-      }
+      if(!m.winnerId || !m.playerAId || !m.playerBId) return; // skip byes and pending
+      var winnerIsA = m.winnerId === m.playerAId;
+      ensure(m.playerAId, m.playerAName).wins += winnerIsA ? 1 : 0;
+      ensure(m.playerAId, m.playerAName).losses += winnerIsA ? 0 : 1;
+      ensure(m.playerBId, m.playerBName).wins += winnerIsA ? 0 : 1;
+      ensure(m.playerBId, m.playerBName).losses += winnerIsA ? 1 : 0;
     });
     state.tournaments.forEach(function(t){
-      var final = state.matches.filter(function(m){ return m.tournamentId === t.id; });
-      if(!final.length) return;
-      var maxRound = Math.max.apply(null, final.map(function(m){ return m.round; }));
-      var finalMatch = final.find(function(m){ return m.round === maxRound; });
-      if(finalMatch && finalMatch.winnerId){
-        ensure(finalMatch.winnerId, finalMatch.winnerName).titles += 1;
-      }
+      var c = B.champion(t, state.matches);
+      if(c) ensure(c.id, c.name).titles += 1;
     });
     var rows = Object.values(stats).sort(function(a,b){
       if(b.wins !== a.wins) return b.wins - a.wins;
@@ -1528,7 +1456,7 @@
     state.registrations.forEach(function(r){ tagOf[r.id] = r.tag; });
     body.innerHTML = rows.map(function(row, i){
       var isTeam = String(row.id).indexOf('team-') === 0;
-      var displayName = isTeam ? row.name : row.name.replace(/\s#\S+$/, '');
+      var displayName = isTeam ? row.name : String(row.name || '').replace(/\s#\S+$/, '');
       var tagCell = isTeam ? '👥 Equipo' : esc(tagOf[row.id] || '');
       return '<tr><td><span class="rank">' + (i+1) + '</span></td><td>' + esc(displayName) + '</td><td class="mono muted">' + tagCell + '</td>' +
         '<td class="num mono">' + row.wins + '</td><td class="num mono">' + row.losses + '</td><td class="num mono">' + row.titles + '</td></tr>';
@@ -1564,6 +1492,37 @@
     hint.textContent = files.length ? (Math.min(files.length,4) + ' imagen(es) seleccionada(s).') : '';
   });
 
+  /* Shrinks big photos before uploading (max 1600px, JPEG). GIFs keep their animation. */
+  function downscaleImage(file){
+    return new Promise(function(resolve){
+      if(!/^image\/(jpeg|png|webp)$/.test(file.type)) return resolve(file);
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function(){
+        var max = 1600, w = img.naturalWidth, h = img.naturalHeight;
+        var scale = Math.min(1, max / Math.max(w, h));
+        if(scale === 1 && file.size < 1.5 * 1024 * 1024){ URL.revokeObjectURL(url); return resolve(file); }
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.round(w * scale); canvas.height = Math.round(h * scale);
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(function(blob){ resolve(blob && blob.size < file.size ? blob : file); }, 'image/jpeg', 0.85);
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
+  async function uploadImage(file){
+    var blob = await downscaleImage(file);
+    var res = await fetch('/api/images', { method:'POST', headers:{'Content-Type': blob.type || file.type}, body: blob });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    var j = await res.json();
+    return {id: j.id, url: j.url};
+  }
+
   function fileToDataUrl(file){
     return new Promise(function(resolve, reject){
       var reader = new FileReader();
@@ -1589,9 +1548,8 @@
       for(var i = 0; i < files.length; i++){
         var file = files[i];
         try{
-          if(assetsApi){
-            var res = await assetsApi.upload(file);
-            images.push({id: res.id, url: res.url});
+          if(online){
+            images.push(await uploadImage(file));
           } else {
             var dataUrl = await fileToDataUrl(file);
             images.push({url: dataUrl});
@@ -1634,6 +1592,8 @@
         '<span class="ic">' + s.ic + '</span><span><b>' + s.label + '</b><span>' + (url ? esc(s.handle) : 'No configurado') + '</span></span></a>';
     }).join('');
     var soc = state.social || {};
+    // don't overwrite the form while someone is editing it
+    if(document.getElementById('formSocial').contains(document.activeElement)) return;
     document.getElementById('sInstagram').value = soc.instagram || '';
     document.getElementById('sTiktok').value = soc.tiktok || '';
     document.getElementById('sYoutube').value = soc.youtube || '';
@@ -1659,20 +1619,9 @@
     if(lastTab && document.getElementById('panel-' + lastTab)) showTab(lastTab);
   }catch(e){}
 
-  /* ---------- hot reload snapshot (in-memory viewers) ---------- */
-  function snapshotState(){ return state; }
-  function bootFromSnapshot(data){
-    if(data && data.tournaments) state = data;
-  }
-  try{
-    if(window.claude && window.claude.hot){
-      window.claude.hot.snapshot(snapshotState);
-      if(window.claude.hot.ready) window.claude.hot.ready(function(data){ bootFromSnapshot(data); initStore(); });
-      else { bootFromSnapshot(window.claude.hot.data); initStore(); }
-    } else {
-      initStore();
-    }
-  }catch(e){ initStore(); }
+  initStore();
 
 })();
 </script>
+</body>
+</html>

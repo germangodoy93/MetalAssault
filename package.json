@@ -4,12 +4,14 @@
   "private": true,
   "description": "Metal Assault - App de torneos de Clash Royale",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test \"test/*.test.js\""
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "pg": "^8.23.1"
   }
 }
