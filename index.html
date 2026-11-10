@@ -7,7 +7,7 @@
 <link rel="icon" href="logo.jpg" />
 <title>Metal Assault</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Teko:wght@500;600;700&display=swap');
 
   :root{
     --bg:#0b0c10;
@@ -125,7 +125,7 @@
 
   /* hero */
   .hero{
-    display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center;
+    display:grid; grid-template-columns:1.25fr .75fr; gap:28px; align-items:center;
     background:linear-gradient(155deg, var(--surface) 0%, var(--surface-2) 100%);
     border:1px solid var(--line); border-radius:18px; padding:28px; margin-bottom:22px;
     box-shadow:var(--shadow);
@@ -134,11 +134,10 @@
   .hero h1{ font-size:clamp(28px,5vw,42px); margin:0 0 10px; text-transform:uppercase; }
   .hero h1 span{ color:var(--gold); }
   .hero p{ color:var(--text-dim); font-size:15px; max-width:46ch; margin:0 0 18px; }
-  .hero .stats{ display:flex; gap:22px; flex-wrap:wrap; }
-  .hero .stat b{ display:block; font-family:'Rajdhani',sans-serif; font-size:26px; color:var(--gold); }
+  .hero .stats{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; }
+  .hero .stat{ background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .hero .stat b{ display:block; font-family:'Rajdhani',sans-serif; font-size:30px; line-height:1.1; color:var(--gold); }
   .hero .stat span{ font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em; }
-  .hero-art{ position:relative; aspect-ratio:1/1; border-radius:14px; overflow:hidden; border:1px solid var(--line); background:var(--surface-3); display:grid; place-items:center; }
-  .hero-art img{ width:70%; height:70%; object-fit:contain; filter:drop-shadow(0 10px 24px rgba(0,0,0,.4)); }
 
   /* cards / grid */
   .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
@@ -289,12 +288,11 @@
   /* ================= ANIMATIONS ================= */
   .pill .dot{ width:7px; height:7px; border-radius:50%; background:currentColor; display:inline-block; flex:none; }
   .hero{ position:relative; overflow:hidden; isolation:isolate; }
-  .hero-art img{ position:relative; z-index:1; }
   .dice{ display:inline-block; }
   #confetti{ position:fixed; inset:0; pointer-events:none; z-index:90; }
 
   @media (prefers-reduced-motion: no-preference){
-    /* hero: soft aurora, floating logo with rotating glow, staggered intro */
+    /* hero: soft aurora, staggered intro, stat tiles pop in */
     .hero::before{
       content:""; position:absolute; z-index:-1; inset:-40%;
       background:
@@ -302,17 +300,14 @@
         radial-gradient(closest-side at 75% 65%, color-mix(in srgb, var(--arcane) 18%, transparent), transparent);
       animation: aurora 14s ease-in-out infinite alternate;
     }
-    .hero-art::before{
-      content:""; position:absolute; width:78%; aspect-ratio:1; border-radius:50%;
-      background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--gold) 55%, transparent), transparent 40%, color-mix(in srgb, var(--arcane) 50%, transparent), transparent 75%);
-      filter: blur(26px); opacity:.75; animation: spin 9s linear infinite;
-    }
-    .hero-art img{ animation: float 5s ease-in-out infinite; }
     .hero > div:first-child > *{ animation: rise .6s cubic-bezier(.2,.7,.2,1) both; }
     .hero > div:first-child > :nth-child(2){ animation-delay:.08s; }
     .hero > div:first-child > :nth-child(3){ animation-delay:.16s; }
-    .hero > div:first-child > :nth-child(4){ animation-delay:.24s; }
-    .hero-art{ animation: popIn .7s cubic-bezier(.2,.8,.2,1.2) both .1s; }
+    .hero .stat{ animation: popIn .55s cubic-bezier(.2,.8,.2,1.2) both; }
+    .hero .stat:nth-child(2){ animation-delay:.08s; }
+    .hero .stat:nth-child(3){ animation-delay:.16s; }
+    .hero .stat:nth-child(4){ animation-delay:.24s; }
+    .kraneo-stage{ animation: popIn .7s cubic-bezier(.2,.8,.2,1.1) both; }
 
     /* staggered entrance when a tab is opened (not on live updates) */
     .panel.entering :is(.grid > .card, .group-card, .social-card, .post, tbody tr, .round-col){
@@ -353,6 +348,54 @@
 
     .toast{ transition: opacity .25s, transform .35s cubic-bezier(.2,.8,.2,1.3); }
   }
+
+  /* ---- KRANEO scene (scoped; keyframes prefixed with k-) ---- */
+  .kraneo{ margin-bottom:22px; }
+  /* Cover banner: 16:9, but capped in height so the hero stays in view on
+     laptops. Extra width is filled with the scene's own wall/floor colors. */
+  .kraneo-stage{
+    width:100%; aspect-ratio:16/9; max-height:min(54vh, 560px);
+    border-radius:18px; overflow:hidden; border:1px solid var(--line); box-shadow:var(--shadow);
+    background:linear-gradient(to bottom, #17171a 92.78%, #881419 92.78%, #881419 93.06%, #0b0b0c 93.06%);
+  }
+  .kraneo-stage svg{ display:block; width:100%; height:100%; }
+  .kraneo .walker{ animation:k-walkerSeq 12s linear infinite; }
+  .kraneo .sitter{ opacity:0; animation:k-sitterSeq 12s ease-out infinite; }
+  .kraneo .sway{ animation:k-sway .6s ease-in-out infinite; transform-box:fill-box; transform-origin:50% 100%; }
+  .kraneo .bob{ animation:k-bob .3s ease-in-out infinite alternate; }
+  .kraneo .headbob{ animation:k-headbob .9s ease-in-out infinite; transform-box:fill-box; transform-origin:50% 100%; }
+  .kraneo .jig{ animation:k-jig .18s ease-in-out infinite alternate; }
+  .kraneo .thumbL{ animation:k-thumb .3s linear infinite; }
+  .kraneo .thumbR{ animation:k-thumb .22s linear infinite reverse; }
+  .kraneo .glowC{ animation:k-flicker 1.1s steps(1) infinite; }
+  .kraneo .glowR{ animation:k-flicker 1.7s steps(1) infinite reverse; }
+  .kraneo .flash{ animation:k-blink .35s steps(1) infinite; }
+  .kraneo .eyes{ animation:k-eyes 1.4s ease-in-out infinite; }
+  .kraneo .combo{ animation:k-combo 1.6s ease-out infinite; }
+  .kraneo .combo2{ animation:k-combo 1.6s ease-out .8s infinite; }
+  .kraneo .startTxt{ animation:k-startSeq 12s linear infinite; }
+  .kraneo .gameTxt{ opacity:0; animation:k-gameSeq 12s linear infinite; }
+  .kraneo .blinkSlow{ animation:k-blink .9s steps(1) infinite; }
+  .kraneo.paused *{ animation-play-state:paused !important; } /* off-screen: save battery */
+  @media (prefers-reduced-motion: reduce){
+    /* static frame: Kraneo already seated and playing */
+    .kraneo *{ animation:none !important; }
+    .kraneo .walker, .kraneo .startTxt{ opacity:0; }
+    .kraneo .sitter, .kraneo .gameTxt{ opacity:1; }
+  }
+  @keyframes k-walkerSeq{0%{opacity:0;transform:translate(0px,0px)}4%{opacity:1;transform:translate(0px,0px)}28%{opacity:1;transform:translate(310px,0px)}33%{opacity:1;transform:translate(310px,22px)}37%{opacity:0;transform:translate(310px,44px)}100%{opacity:0;transform:translate(310px,44px)}}
+  @keyframes k-sitterSeq{0%{opacity:0;transform:translateY(-34px)}33%{opacity:0;transform:translateY(-34px)}38%{opacity:1;transform:translateY(0px)}40%{transform:translateY(-6px)}42%{transform:translateY(0px)}94%{opacity:1;transform:translateY(0px)}100%{opacity:0;transform:translateY(0px)}}
+  @keyframes k-sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+  @keyframes k-bob{0%{transform:translateY(0px)}100%{transform:translateY(-10px)}}
+  @keyframes k-headbob{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg) translateY(4px)}}
+  @keyframes k-jig{0%{transform:translateY(0px)}100%{transform:translateY(3px)}}
+  @keyframes k-thumb{0%{transform:translate(0px,0px)}50%{transform:translate(2px,3px)}100%{transform:translate(0px,0px)}}
+  @keyframes k-flicker{0%{opacity:.35}20%{opacity:.75}40%{opacity:.3}55%{opacity:.85}70%{opacity:.4}100%{opacity:.6}}
+  @keyframes k-blink{0%{opacity:1}50%{opacity:.15}}
+  @keyframes k-eyes{0%,100%{opacity:1}50%{opacity:.55}}
+  @keyframes k-combo{0%{opacity:0;transform:translateY(0px)}15%{opacity:1}80%{opacity:1;transform:translateY(-50px)}100%{opacity:0;transform:translateY(-60px)}}
+  @keyframes k-startSeq{0%{opacity:1}30%{opacity:1}34%{opacity:0}100%{opacity:0}}
+  @keyframes k-gameSeq{0%{opacity:0}38%{opacity:0}42%{opacity:1}92%{opacity:1}96%{opacity:0}100%{opacity:0}}
 
   @keyframes rise{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
   @keyframes popIn{ from{ opacity:0; transform:scale(.85); } to{ opacity:1; transform:none; } }
@@ -420,6 +463,319 @@
 
   <!-- INICIO -->
   <section class="panel active" id="panel-inicio">
+    <!-- KRANEO (portada): la mascota entra, se sienta en su silla gamer y juega (bucle de 12 s) -->
+    <section class="kraneo" aria-label="Kraneo, la mascota de Metal Assault">
+      <div class="kraneo-stage">
+<svg viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Animación en bucle: KRANEO, el esqueleto de Metal Assault, entra caminando con su control, se sienta en una silla gamer y juega mientras la luz de la pantalla parpadea sobre él">
+<defs>
+<linearGradient id="aGloss" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#3c3c42"></stop>
+<stop offset="45%" stop-color="#151517"></stop>
+<stop offset="100%" stop-color="#050506"></stop>
+</linearGradient>
+<linearGradient id="aChrome" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#ffffff"></stop>
+<stop offset="45%" stop-color="#c3c6cc"></stop>
+<stop offset="55%" stop-color="#6b6e75"></stop>
+<stop offset="100%" stop-color="#e3e5e9"></stop>
+</linearGradient>
+<linearGradient id="aIvory" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#f3efe6"></stop>
+<stop offset="100%" stop-color="#b9b2a3"></stop>
+</linearGradient>
+<radialGradient id="aScreenC" cx="50%" cy="55%" r="45%">
+<stop offset="0%" stop-color="#46c8ff" stop-opacity="0.35"></stop>
+<stop offset="100%" stop-color="#46c8ff" stop-opacity="0"></stop>
+</radialGradient>
+<radialGradient id="aScreenR" cx="50%" cy="55%" r="45%">
+<stop offset="0%" stop-color="#D3121B" stop-opacity="0.4"></stop>
+<stop offset="100%" stop-color="#D3121B" stop-opacity="0"></stop>
+</radialGradient>
+<radialGradient id="aRoom" cx="50%" cy="40%" r="60%">
+<stop offset="0%" stop-color="#D3121B" stop-opacity="0.22"></stop>
+<stop offset="100%" stop-color="#D3121B" stop-opacity="0"></stop>
+</radialGradient>
+<filter id="aGlow" x="-100%" y="-100%" width="300%" height="300%">
+<feGaussianBlur stdDeviation="5" result="b"></feGaussianBlur>
+<feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+</filter>
+<clipPath id="aPoster"><rect x="96" y="116" width="158" height="158" rx="8"></rect></clipPath>
+
+<!-- Calavera -->
+<g id="kSkull">
+<path d="M300 44 C 360 44 392 86 392 138 C 392 166 382 184 370 196 C 366 206 360 212 352 216 L 248 216 C 240 212 234 206 230 196 C 218 184 208 166 208 138 C 208 86 240 44 300 44 Z" fill="url(#aGloss)" stroke="#D3121B" stroke-width="4"></path>
+<path d="M222 150 C 214 110 236 66 282 54" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.14" stroke-linecap="round"></path>
+<ellipse cx="334" cy="80" rx="26" ry="10" fill="#ffffff" opacity="0.2" transform="rotate(25 334 80)"></ellipse>
+<polyline points="318,50 310,72 320,88 314,104" fill="none" stroke="#D3121B" stroke-width="2.5" filter="url(#aGlow)"></polyline>
+<path d="M234 128 C 220 110 212 88 216 62 C 228 86 244 100 258 112 Z" fill="url(#aIvory)" stroke="#000" stroke-width="1.5"></path>
+<path d="M366 128 C 380 110 388 88 384 62 C 372 86 356 100 342 112 Z" fill="url(#aIvory)" stroke="#000" stroke-width="1.5"></path>
+<path d="M244 144 C 262 136 284 142 296 154 C 298 170 290 184 272 184 C 254 184 242 170 244 144 Z" fill="#030304"></path>
+<path d="M356 144 C 338 136 316 142 304 154 C 302 170 310 184 328 184 C 346 184 358 170 356 144 Z" fill="#030304"></path>
+<path d="M238 136 C 258 132 282 138 298 152" fill="none" stroke="#45454b" stroke-width="3" stroke-linecap="round"></path>
+<path d="M362 136 C 342 132 318 138 302 152" fill="none" stroke="#45454b" stroke-width="3" stroke-linecap="round"></path>
+<ellipse cx="272" cy="164" rx="10" ry="6" fill="#FF2A2A" filter="url(#aGlow)" transform="rotate(14 272 164)"></ellipse>
+<ellipse cx="328" cy="164" rx="10" ry="6" fill="#FF2A2A" filter="url(#aGlow)" transform="rotate(-14 328 164)"></ellipse>
+<ellipse cx="273" cy="164" rx="3.5" ry="2" fill="#ffd6d6"></ellipse>
+<ellipse cx="327" cy="164" rx="3.5" ry="2" fill="#ffd6d6"></ellipse>
+<path d="M300 186 C 296 192 289 198 291 206 L 300 201 L 309 206 C 311 198 304 192 300 186 Z" fill="#030304"></path>
+<path d="M230 190 C 242 198 256 198 266 194" fill="none" stroke="#4a4a50" stroke-width="2.5" stroke-linecap="round"></path>
+<path d="M370 190 C 358 198 344 198 334 194" fill="none" stroke="#4a4a50" stroke-width="2.5" stroke-linecap="round"></path>
+<g fill="url(#aIvory)" stroke="#000" stroke-width="1">
+<rect x="261" y="208" width="9" height="16" rx="3"></rect>
+<rect x="271" y="208" width="9" height="17" rx="3"></rect>
+<rect x="281" y="208" width="9" height="18" rx="3"></rect>
+<rect x="291" y="208" width="9" height="18" rx="3"></rect>
+<rect x="300" y="208" width="9" height="18" rx="3"></rect>
+<rect x="310" y="208" width="9" height="18" rx="3"></rect>
+<rect x="320" y="208" width="9" height="17" rx="3"></rect>
+<rect x="330" y="208" width="9" height="16" rx="3"></rect>
+</g>
+<path d="M248 222 C 250 242 270 258 300 260 C 330 258 350 242 352 222 L 342 222 L 338 232 L 262 232 L 258 222 Z" fill="url(#aGloss)" stroke="#D3121B" stroke-width="3"></path>
+<g fill="url(#aIvory)" stroke="#000" stroke-width="1">
+<rect x="264" y="222" width="9" height="13" rx="3"></rect>
+<rect x="274" y="222" width="9" height="14" rx="3"></rect>
+<rect x="284" y="222" width="9" height="14" rx="3"></rect>
+<rect x="294" y="222" width="12" height="14" rx="3"></rect>
+<rect x="307" y="222" width="9" height="14" rx="3"></rect>
+<rect x="317" y="222" width="9" height="14" rx="3"></rect>
+<rect x="327" y="222" width="9" height="13" rx="3"></rect>
+</g>
+</g>
+
+<!-- Torso: columna, pelvis, cinturón, costillas, esternón, clavículas -->
+<g id="kTorso">
+<g fill="url(#aGloss)" stroke="#D3121B" stroke-width="2">
+<rect x="290" y="258" width="20" height="10" rx="4"></rect>
+<rect x="290" y="272" width="20" height="10" rx="4"></rect>
+<rect x="288" y="384" width="24" height="12" rx="4"></rect>
+<rect x="287" y="400" width="26" height="13" rx="4"></rect>
+<rect x="286" y="417" width="28" height="14" rx="4"></rect>
+<rect x="285" y="435" width="30" height="14" rx="4"></rect>
+<rect x="284" y="453" width="32" height="15" rx="4"></rect>
+<rect x="284" y="472" width="32" height="15" rx="4"></rect>
+</g>
+<path d="M300 498 C 270 486 234 490 228 520 C 226 544 250 558 272 554 L 300 566 L 328 554 C 350 558 374 544 372 520 C 366 490 330 486 300 498 Z" fill="url(#aGloss)" stroke="#D3121B" stroke-width="3"></path>
+<ellipse cx="268" cy="534" rx="10" ry="13" fill="#050506"></ellipse>
+<ellipse cx="332" cy="534" rx="10" ry="13" fill="#050506"></ellipse>
+<circle cx="272" cy="556" r="11" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<circle cx="328" cy="556" r="11" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<rect x="224" y="494" width="152" height="16" rx="4" fill="#1f1f22" stroke="#D3121B" stroke-width="2"></rect>
+<rect x="278" y="487" width="44" height="30" rx="6" fill="url(#aChrome)" stroke="#000" stroke-width="2"></rect>
+<text x="300" y="510" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="22" fill="#111">MA</text>
+<g stroke-linecap="round" fill="none">
+<g stroke="#D3121B" stroke-width="13">
+<path d="M294 304 C 248 296 216 314 220 352"></path>
+<path d="M294 322 C 250 316 222 334 226 372"></path>
+<path d="M294 340 C 254 336 228 354 234 390"></path>
+<path d="M294 358 C 258 356 238 372 244 402"></path>
+<path d="M294 374 C 266 374 250 390 256 410"></path>
+<path d="M306 304 C 352 296 384 314 380 352"></path>
+<path d="M306 322 C 350 316 378 334 374 372"></path>
+<path d="M306 340 C 346 336 372 354 366 390"></path>
+<path d="M306 358 C 342 356 362 372 356 402"></path>
+<path d="M306 374 C 334 374 350 390 344 410"></path>
+</g>
+<g stroke="#1a1a1d" stroke-width="8">
+<path d="M294 304 C 248 296 216 314 220 352"></path>
+<path d="M294 322 C 250 316 222 334 226 372"></path>
+<path d="M294 340 C 254 336 228 354 234 390"></path>
+<path d="M294 358 C 258 356 238 372 244 402"></path>
+<path d="M294 374 C 266 374 250 390 256 410"></path>
+<path d="M306 304 C 352 296 384 314 380 352"></path>
+<path d="M306 322 C 350 316 378 334 374 372"></path>
+<path d="M306 340 C 346 336 372 354 366 390"></path>
+<path d="M306 358 C 342 356 362 372 356 402"></path>
+<path d="M306 374 C 334 374 350 390 344 410"></path>
+</g>
+</g>
+<rect x="291" y="290" width="18" height="94" rx="8" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></rect>
+<circle cx="300" cy="340" r="7" fill="#FF2A2A" filter="url(#aGlow)" opacity="0.9"></circle>
+<g stroke-linecap="round" fill="none">
+<path d="M296 292 C 266 282 234 282 206 292" stroke="#D3121B" stroke-width="13"></path>
+<path d="M304 292 C 334 282 366 282 394 292" stroke="#D3121B" stroke-width="13"></path>
+<path d="M296 292 C 266 282 234 282 206 292" stroke="#1a1a1d" stroke-width="8"></path>
+<path d="M304 292 C 334 282 366 282 394 292" stroke="#1a1a1d" stroke-width="8"></path>
+</g>
+</g>
+
+<!-- Hombrera -->
+<g id="kPad">
+<path d="M214 278 C 176 270 146 294 148 334 L 196 324 L 222 296 Z" fill="url(#aGloss)" stroke="#D3121B" stroke-width="3"></path>
+<polygon points="160,304 136,270 176,294" fill="url(#aChrome)" stroke="#000" stroke-width="1.5"></polygon>
+<polygon points="184,288 178,250 202,284" fill="url(#aChrome)" stroke="#000" stroke-width="1.5"></polygon>
+<polygon points="152,326 124,316 154,312" fill="url(#aChrome)" stroke="#000" stroke-width="1.5"></polygon>
+<path d="M156 322 C 162 302 182 290 206 290" stroke="url(#aChrome)" stroke-width="3" fill="none"></path>
+</g>
+
+<!-- Control (centro en 490,610) -->
+<g id="kCtrl">
+<path d="M440 566 C 428 566 420 576 418 590 L 408 642 C 405 658 424 666 437 652 L 458 627 L 522 627 L 543 652 C 556 666 575 658 572 642 L 562 590 C 560 576 552 566 540 566 Z" fill="url(#aGloss)" stroke="#D3121B" stroke-width="3"></path>
+<path d="M444 572 L536 572" stroke="url(#aChrome)" stroke-width="4" stroke-linecap="round"></path>
+<rect x="440" y="588" width="24" height="8" rx="2" fill="#3a3a40"></rect>
+<rect x="448" y="580" width="8" height="24" rx="2" fill="#3a3a40"></rect>
+<circle cx="528" cy="582" r="5" fill="#3a3a40"></circle>
+<circle cx="528" cy="602" r="5" fill="#3a3a40"></circle>
+<circle cx="518" cy="592" r="5" fill="#3a3a40"></circle>
+<circle cx="538" cy="592" r="5" fill="#3a3a40"></circle>
+<circle cx="472" cy="612" r="10" fill="#0b0b0c" stroke="#55555c" stroke-width="2"></circle>
+<circle cx="508" cy="612" r="10" fill="#0b0b0c" stroke="#55555c" stroke-width="2"></circle>
+<circle cx="472" cy="612" r="4" fill="#2a2a2e"></circle>
+<circle cx="508" cy="612" r="4" fill="#2a2a2e"></circle>
+</g>
+</defs>
+
+<!-- Cuarto -->
+<rect x="0" y="0" width="1280" height="668" fill="#17171a"></rect>
+<rect x="0" y="0" width="1280" height="668" fill="url(#aRoom)"></rect>
+<rect x="0" y="668" width="1280" height="52" fill="#0b0b0c"></rect>
+<line x1="0" y1="668" x2="1280" y2="668" stroke="#D3121B" stroke-width="2" opacity="0.6"></line>
+<rect x="1010" y="120" width="180" height="250" rx="10" fill="#1f1f23" stroke="#34343a" stroke-width="2"></rect>
+<g stroke="#34343a" stroke-width="2"><line x1="1030" y1="300" x2="1170" y2="300"></line><line x1="1030" y1="320" x2="1140" y2="320"></line><line x1="1030" y1="340" x2="1160" y2="340"></line></g>
+<rect x="88" y="108" width="174" height="174" rx="12" fill="#0e0e10" stroke="#D3121B" stroke-width="2"></rect>
+
+<!-- Silla gamer -->
+<rect x="532" y="250" width="216" height="290" rx="44" fill="#1a1a1d" stroke="#D3121B" stroke-width="3"></rect>
+<rect x="600" y="272" width="80" height="250" rx="22" fill="#232327"></rect>
+<line x1="560" y1="290" x2="560" y2="510" stroke="#D3121B" stroke-width="4" opacity="0.8"></line>
+<line x1="720" y1="290" x2="720" y2="510" stroke="#D3121B" stroke-width="4" opacity="0.8"></line>
+<rect x="498" y="440" width="28" height="92" rx="10" fill="#1f1f22" stroke="#34343a" stroke-width="2"></rect>
+<rect x="754" y="440" width="28" height="92" rx="10" fill="#1f1f22" stroke="#34343a" stroke-width="2"></rect>
+<rect x="516" y="514" width="248" height="38" rx="16" fill="#222226" stroke="#D3121B" stroke-width="3"></rect>
+<rect x="630" y="552" width="20" height="72" fill="#2a2a2e"></rect>
+<g stroke="#2a2a2e" stroke-width="10" stroke-linecap="round"><line x1="640" y1="624" x2="560" y2="652"></line><line x1="640" y1="624" x2="720" y2="652"></line><line x1="640" y1="624" x2="600" y2="660"></line><line x1="640" y1="624" x2="680" y2="660"></line></g>
+<g fill="#0b0b0c" stroke="#45454b" stroke-width="2"><circle cx="560" cy="658" r="9"></circle><circle cx="720" cy="658" r="9"></circle><circle cx="600" cy="662" r="9"></circle><circle cx="680" cy="662" r="9"></circle></g>
+
+<!-- KRANEO caminando -->
+<g class="walker">
+<svg x="144" y="140" width="372" height="558" viewBox="0 0 600 900" overflow="visible">
+<ellipse cx="300" cy="850" rx="140" ry="14" fill="#000" opacity="0.45"></ellipse>
+<g class="bob">
+<g class="sway">
+<g stroke-linecap="round" fill="none">
+<line x1="272" y1="556" x2="262" y2="682" stroke="#D3121B" stroke-width="20"></line>
+<line x1="272" y1="556" x2="262" y2="682" stroke="#1a1a1d" stroke-width="14"></line>
+<line x1="328" y1="556" x2="338" y2="682" stroke="#D3121B" stroke-width="20"></line>
+<line x1="328" y1="556" x2="338" y2="682" stroke="#1a1a1d" stroke-width="14"></line>
+<line x1="256" y1="700" x2="254" y2="812" stroke="#D3121B" stroke-width="15"></line>
+<line x1="256" y1="700" x2="254" y2="812" stroke="#1a1a1d" stroke-width="10"></line>
+<line x1="344" y1="700" x2="346" y2="812" stroke="#D3121B" stroke-width="15"></line>
+<line x1="344" y1="700" x2="346" y2="812" stroke="#1a1a1d" stroke-width="10"></line>
+</g>
+<circle cx="262" cy="690" r="14" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<circle cx="338" cy="690" r="14" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<path d="M246 812 L276 812 L290 836 L292 846 L224 846 L230 832 Z" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></path>
+<path d="M354 812 L324 812 L310 836 L308 846 L376 846 L370 832 Z" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></path>
+<use href="#kTorso"></use>
+<g stroke-linecap="round" fill="none">
+<line x1="200" y1="300" x2="172" y2="418" stroke="#D3121B" stroke-width="18"></line>
+<line x1="200" y1="300" x2="172" y2="418" stroke="#1a1a1d" stroke-width="12"></line>
+<line x1="170" y1="426" x2="154" y2="528" stroke="#D3121B" stroke-width="12"></line>
+<line x1="170" y1="426" x2="154" y2="528" stroke="#1a1a1d" stroke-width="7"></line>
+<line x1="400" y1="300" x2="438" y2="410" stroke="#D3121B" stroke-width="18"></line>
+<line x1="400" y1="300" x2="438" y2="410" stroke="#1a1a1d" stroke-width="12"></line>
+<line x1="442" y1="418" x2="474" y2="518" stroke="#D3121B" stroke-width="12"></line>
+<line x1="442" y1="418" x2="474" y2="518" stroke="#1a1a1d" stroke-width="7"></line>
+</g>
+<circle cx="172" cy="420" r="11" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<ellipse cx="155" cy="539" rx="18" ry="13" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></ellipse>
+<circle cx="442" cy="414" r="11" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<use href="#kPad"></use>
+<use href="#kCtrl"></use>
+<ellipse cx="476" cy="532" rx="18" ry="12" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></ellipse>
+<g stroke-linecap="round" fill="none">
+<g stroke="#D3121B" stroke-width="9"><path d="M462 540 L456 562 L462 580"></path><path d="M476 544 L478 570 L484 584"></path><path d="M492 538 L502 558 L506 574"></path></g>
+<g stroke="#1a1a1d" stroke-width="5"><path d="M462 540 L456 562 L462 580"></path><path d="M476 544 L478 570 L484 584"></path><path d="M492 538 L502 558 L506 574"></path></g>
+</g>
+<use href="#kSkull"></use>
+</g>
+</g>
+</svg>
+</g>
+
+<!-- KRANEO sentado jugando -->
+<g class="sitter">
+<svg x="454" y="179" width="372" height="558" viewBox="0 0 600 900" overflow="visible">
+<g stroke-linecap="round" fill="none">
+<line x1="272" y1="556" x2="240" y2="604" stroke="#D3121B" stroke-width="22"></line>
+<line x1="272" y1="556" x2="240" y2="604" stroke="#1a1a1d" stroke-width="16"></line>
+<line x1="328" y1="556" x2="360" y2="604" stroke="#D3121B" stroke-width="22"></line>
+<line x1="328" y1="556" x2="360" y2="604" stroke="#1a1a1d" stroke-width="16"></line>
+<line x1="232" y1="624" x2="228" y2="752" stroke="#D3121B" stroke-width="15"></line>
+<line x1="232" y1="624" x2="228" y2="752" stroke="#1a1a1d" stroke-width="10"></line>
+<line x1="246" y1="626" x2="242" y2="748" stroke="#D3121B" stroke-width="9"></line>
+<line x1="246" y1="626" x2="242" y2="748" stroke="#1a1a1d" stroke-width="5"></line>
+<line x1="368" y1="624" x2="372" y2="752" stroke="#D3121B" stroke-width="15"></line>
+<line x1="368" y1="624" x2="372" y2="752" stroke="#1a1a1d" stroke-width="10"></line>
+<line x1="354" y1="626" x2="358" y2="748" stroke="#D3121B" stroke-width="9"></line>
+<line x1="354" y1="626" x2="358" y2="748" stroke="#1a1a1d" stroke-width="5"></line>
+</g>
+<circle cx="236" cy="612" r="17" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<circle cx="364" cy="612" r="17" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<path d="M212 754 L244 754 L256 778 L256 788 L190 788 L196 774 Z" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></path>
+<path d="M388 754 L356 754 L344 778 L344 788 L410 788 L404 774 Z" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></path>
+<path d="M300 540 C 300 610 420 640 470 790" fill="none" stroke="#D3121B" stroke-width="4" stroke-linecap="round" filter="url(#aGlow)"></path>
+<use href="#kTorso"></use>
+<g stroke-linecap="round" fill="none">
+<line x1="200" y1="300" x2="178" y2="418" stroke="#D3121B" stroke-width="18"></line>
+<line x1="200" y1="300" x2="178" y2="418" stroke="#1a1a1d" stroke-width="12"></line>
+<line x1="400" y1="300" x2="422" y2="418" stroke="#D3121B" stroke-width="18"></line>
+<line x1="400" y1="300" x2="422" y2="418" stroke="#1a1a1d" stroke-width="12"></line>
+</g>
+<circle cx="400" cy="298" r="14" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<use href="#kPad"></use>
+<g class="jig">
+<g stroke-linecap="round" fill="none">
+<line x1="180" y1="428" x2="232" y2="494" stroke="#D3121B" stroke-width="11"></line>
+<line x1="180" y1="428" x2="232" y2="494" stroke="#1a1a1d" stroke-width="6"></line>
+<line x1="192" y1="424" x2="242" y2="488" stroke="#D3121B" stroke-width="11"></line>
+<line x1="192" y1="424" x2="242" y2="488" stroke="#1a1a1d" stroke-width="6"></line>
+<line x1="420" y1="428" x2="368" y2="494" stroke="#D3121B" stroke-width="11"></line>
+<line x1="420" y1="428" x2="368" y2="494" stroke="#1a1a1d" stroke-width="6"></line>
+<line x1="408" y1="424" x2="358" y2="488" stroke="#D3121B" stroke-width="11"></line>
+<line x1="408" y1="424" x2="358" y2="488" stroke="#1a1a1d" stroke-width="6"></line>
+</g>
+<circle cx="178" cy="420" r="11" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<circle cx="422" cy="420" r="11" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></circle>
+<g transform="translate(-190 -120)">
+<use href="#kCtrl"></use>
+<circle class="flash" cx="538" cy="592" r="5" fill="#D3121B" filter="url(#aGlow)"></circle>
+</g>
+<ellipse cx="238" cy="498" rx="16" ry="12" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></ellipse>
+<ellipse cx="362" cy="498" rx="16" ry="12" fill="url(#aGloss)" stroke="#D3121B" stroke-width="2.5"></ellipse>
+<g stroke-linecap="round" fill="none">
+<g stroke="#D3121B" stroke-width="9"><path d="M226 504 L222 524 L230 538"></path><path d="M236 508 L236 530 L242 542"></path><path d="M246 506 L252 526 L254 538"></path><path d="M374 504 L378 524 L370 538"></path><path d="M364 508 L364 530 L358 542"></path><path d="M354 506 L348 526 L346 538"></path></g>
+<g stroke="#1a1a1d" stroke-width="5"><path d="M226 504 L222 524 L230 538"></path><path d="M236 508 L236 530 L242 542"></path><path d="M246 506 L252 526 L254 538"></path><path d="M374 504 L378 524 L370 538"></path><path d="M364 508 L364 530 L358 542"></path><path d="M354 506 L348 526 L346 538"></path></g>
+<g class="thumbL"><path d="M250 494 L268 488 L280 490" stroke="#D3121B" stroke-width="9"></path><path d="M250 494 L268 488 L280 490" stroke="#1a1a1d" stroke-width="5"></path></g>
+<g class="thumbR"><path d="M350 494 L332 488 L320 490" stroke="#D3121B" stroke-width="9"></path><path d="M350 494 L332 488 L320 490" stroke="#1a1a1d" stroke-width="5"></path></g>
+</g>
+</g>
+<g class="headbob">
+<use href="#kSkull"></use>
+<g class="eyes">
+<ellipse cx="272" cy="164" rx="14" ry="8" fill="#FF2A2A" filter="url(#aGlow)" opacity="0.55" transform="rotate(14 272 164)"></ellipse>
+<ellipse cx="328" cy="164" rx="14" ry="8" fill="#FF2A2A" filter="url(#aGlow)" opacity="0.55" transform="rotate(-14 328 164)"></ellipse>
+</g>
+</g>
+</svg>
+<rect class="glowC" x="340" y="120" width="600" height="560" fill="url(#aScreenC)"></rect>
+<rect class="glowR" x="340" y="120" width="600" height="560" fill="url(#aScreenR)"></rect>
+<text class="combo" x="860" y="300" font-family="Teko, sans-serif" font-weight="700" font-size="44" fill="#FF2A2A">+1000</text>
+<text class="combo2" x="380" y="340" font-family="Teko, sans-serif" font-weight="700" font-size="36" fill="#f2f2f4">COMBO x3</text>
+</g>
+
+<!-- Póster del logo en la pared -->
+<image href="logo.jpg" x="96" y="116" width="158" height="158" preserveAspectRatio="xMidYMid slice" clip-path="url(#aPoster)"></image>
+
+<!-- Textos -->
+<g class="startTxt">
+<text class="blinkSlow" x="640" y="78" text-anchor="middle" font-family="Teko, sans-serif" font-weight="600" font-size="46" letter-spacing="6" fill="#f2f2f4">PRESIONA START</text>
+</g>
+<text class="gameTxt" x="640" y="84" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="64" letter-spacing="6" fill="#ff5a60">¡GAME ON!</text>
+<text x="32" y="704" font-family="Teko, sans-serif" font-size="22" letter-spacing="3" fill="#a0a1a7">KRANEO · ENTRA, SE SIENTA Y JUEGA</text>
+</svg>
+      </div>
+    </section>
+
     <div class="hero">
       <div>
         <h1>Batallas <span>organizadas</span>.<br/>Gloria confirmada.</h1>
@@ -428,14 +784,13 @@
           <button class="btn primary" data-goto="torneos">Ver torneos</button>
           <button class="btn ghost" data-goto="registro">Inscribirme</button>
         </div>
-        <div class="stats" style="margin-top:20px;">
-          <div class="stat"><b id="statTorneos">0</b><span>Torneos</span></div>
-          <div class="stat"><b id="statJugadores">0</b><span>Jugadores</span></div>
-          <div class="stat"><b id="statPartidas">0</b><span>Partidas jugadas</span></div>
-          <div class="stat"><b id="statAbiertos">0</b><span>Abiertos ahora</span></div>
-        </div>
       </div>
-      <div class="hero-art"><img src="logo.jpg" alt="" /></div>
+      <div class="stats">
+        <div class="stat"><b id="statTorneos">0</b><span>Torneos</span></div>
+        <div class="stat"><b id="statJugadores">0</b><span>Jugadores</span></div>
+        <div class="stat"><b id="statPartidas">0</b><span>Partidas jugadas</span></div>
+        <div class="stat"><b id="statAbiertos">0</b><span>Abiertos ahora</span></div>
+      </div>
     </div>
 
     <div class="sechead"><h2>Torneos abiertos</h2><span class="sub">Inscripciones activas</span></div>
@@ -760,6 +1115,15 @@
     });
   }
   function isFlashing(id){ return flashUntil[id] && flashUntil[id] > Date.now(); }
+
+  /* Pause the Kraneo scene while it's off-screen. */
+  (function(){
+    var scene = document.querySelector('.kraneo');
+    if(!scene || !('IntersectionObserver' in window)) return;
+    new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ scene.classList.toggle('paused', !e.isIntersecting); });
+    }).observe(scene);
+  })();
 
   /* ---------- tabs ---------- */
   var tabButtons = document.querySelectorAll('#tabs button');
