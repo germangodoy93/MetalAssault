@@ -290,6 +290,62 @@
   .hero{ position:relative; overflow:hidden; isolation:isolate; }
   .dice{ display:inline-block; }
   #confetti{ position:fixed; inset:0; pointer-events:none; z-index:90; }
+  /* Kraneo 3D tab (always a dark stage, whatever the page theme) */
+  .k3d-stage{
+    position:relative; width:100%; height:min(72vh, 640px); min-height:380px; border-radius:16px; overflow:hidden;
+    background:#121214; color:#e8e8ea; font-family:Teko, Impact, sans-serif; container-type:inline-size;
+    box-shadow:0 0 0 2px #881419, 0 18px 50px rgba(0,0,0,.35); -webkit-user-select:none; user-select:none;
+  }
+  .k3d-canvas{ position:absolute; inset:0; touch-action:pan-y; cursor:grab; outline:none; }
+  .k3d-canvas.grabbing{ cursor:grabbing; }
+  .k3d-canvas:focus-visible{ box-shadow:inset 0 0 0 3px #D3121B; }
+  .k3d-canvas canvas{ display:block; width:100%; height:100%; }
+  .k3d-tag{ position:absolute; left:16px; top:10px; font-size:22px; letter-spacing:3px; color:#a0a1a7; pointer-events:none; }
+  .k3d-tag b{ color:#D3121B; font-weight:700; }
+  .k3d-hint{ position:absolute; left:16px; top:36px; font-size:16px; letter-spacing:2px; color:#77787e; pointer-events:none; }
+  .k3d-shout{ position:absolute; left:0; right:0; bottom:18px; text-align:center; pointer-events:none; line-height:.82; text-transform:uppercase; }
+  .k3d-shout span{
+    display:inline-block; font-weight:700; font-size:clamp(40px, 8.5cqw, 88px); letter-spacing:2px;
+    background:linear-gradient(180deg,#ffffff 0%,#c9ccd2 45%,#6e7178 55%,#e6e8ec 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    -webkit-text-stroke:2px #D3121B; filter:drop-shadow(0 4px 0 #000);
+    opacity:0; transform:scale(2.2) rotate(-4deg); transition:opacity .08s linear, transform .16s cubic-bezier(.2,1.6,.4,1);
+  }
+  .k3d-shout span + span{ margin-left:.22em; }
+  .k3d-shout span.on{ opacity:1; transform:scale(1) rotate(-2deg); }
+  .k3d-shout span.big{
+    font-size:clamp(56px, 12cqw, 124px);
+    background:linear-gradient(180deg,#ff6a5e 0%,#D3121B 55%,#7a0a10 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-stroke:2px #fff;
+  }
+  .k3d-shout span.big.on{ animation:k3dRumble .09s linear infinite; }
+  @keyframes k3dRumble{ 0%{ translate:-2px 1px; } 50%{ translate:2px -1px; } 100%{ translate:-1px -2px; } }
+  .k3d-slash{
+    position:absolute; left:-20%; right:-20%; top:42%; height:10px; background:linear-gradient(90deg,transparent,#fff 30%,#ff2a2a 60%,transparent);
+    transform:rotate(-14deg) scaleX(0); transform-origin:0 50%; opacity:0; pointer-events:none; filter:drop-shadow(0 0 12px #D3121B);
+  }
+  .k3d-slash.on{ animation:k3dSlash .5s ease-out forwards; }
+  @keyframes k3dSlash{ 0%{ transform:rotate(-14deg) scaleX(0); opacity:1; } 45%{ transform:rotate(-14deg) scaleX(1); opacity:1; } 100%{ transform:rotate(-14deg) scaleX(1); opacity:0; } }
+  .k3d-status{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px; font-size:26px; letter-spacing:2px; color:#a0a1a7; }
+  .k3d-status[hidden]{ display:none; }
+  .k3d-status.error{ color:#ff8a8f; }
+  .k3d-bar{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:14px; }
+  .k3d-bar button{
+    font:600 19px Teko, sans-serif; letter-spacing:1.5px; text-transform:uppercase; color:#e8e8ea; background:#1d1d21;
+    border:2px solid #D3121B; border-radius:8px; padding:8px 14px 5px; min-height:44px; cursor:pointer;
+  }
+  .k3d-bar button:hover{ background:#2a1215; }
+  .k3d-bar button.sel, .k3d-bar button:active{ background:#D3121B; color:#fff; }
+  .k3d-bar button[hidden]{ display:none; }
+  @media (max-width:520px){
+    .k3d-stage{ height:min(68vh, 560px); }
+    .k3d-tag{ font-size:18px; } .k3d-hint{ font-size:14px; top:30px; }
+    .k3d-bar button{ padding:8px 10px 5px; font-size:17px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .k3d-shout span.big.on{ animation:none; }
+    .k3d-shout span{ transition:opacity .2s linear; transform:none; }
+    .k3d-slash.on{ animation:none; }
+  }
+
   /* Knockout "K.O." scene shown when a player is eliminated */
   .ko-overlay{
     position:fixed; inset:0; z-index:85; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
@@ -461,6 +517,7 @@
       <button data-tab="clasificacion">Clasificación</button>
       <button data-tab="publicaciones">Publicaciones</button>
       <button data-tab="redes">Redes</button>
+      <button data-tab="kraneo">Kraneo</button>
     </nav>
   </div>
 </header>
@@ -1002,6 +1059,30 @@
     </form>
   </section>
 
+  <!-- KRANEO 3D -->
+  <section class="panel" id="panel-kraneo">
+    <div class="sechead"><h2>Kraneo</h2><span class="sub">Gritos de guerra de la mascota de Metal Assault</span></div>
+    <div class="k3d" id="k3d">
+      <div class="k3d-stage">
+        <div class="k3d-canvas" tabindex="0" role="img"
+             aria-label="Kraneo en 3D. Arrastra o usa las flechas para girar; teclas 1 a 4 para elegir un grito."></div>
+        <div class="k3d-tag"><b>KRANEO</b> · METAL ASSAULT</div>
+        <div class="k3d-hint">ARRASTRA PARA GIRAR</div>
+        <div class="k3d-slash"></div>
+        <div class="k3d-shout" aria-hidden="true"></div>
+        <div class="k3d-status" hidden></div>
+      </div>
+      <div class="k3d-bar" role="toolbar" aria-label="Escenas de Kraneo">
+        <button type="button" data-k3d-scene="0">Guerra</button>
+        <button type="button" data-k3d-scene="1">Cabeza</button>
+        <button type="button" data-k3d-scene="2">Golpe</button>
+        <button type="button" data-k3d-scene="3">Robo</button>
+        <button type="button" data-k3d-auto class="sel">Auto</button>
+        <button type="button" data-k3d-voice title="Escuchar el grito (voz del navegador)">🔊 Voz</button>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <footer>
@@ -1012,6 +1093,7 @@
 </footer>
 
 <script src="bracket.js"></script>
+<script src="kraneo3d.js"></script>
 <script>
 (function(){
   "use strict";
@@ -1181,6 +1263,7 @@
     try{ localStorage.setItem('ma_tab', name); }catch(e){}
     window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
     animateEnter(document.getElementById('panel-' + name));
+    if(window.Kraneo3D){ if(name === 'kraneo') Kraneo3D.show(); else Kraneo3D.hide(); }
   }
   tabButtons.forEach(function(b){ b.addEventListener('click', function(){ showTab(b.dataset.tab); }); });
   document.querySelectorAll('[data-goto]').forEach(function(b){
