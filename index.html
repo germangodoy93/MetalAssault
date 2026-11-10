@@ -285,6 +285,98 @@
   footer{ border-top:1px solid var(--line); padding:22px 0 40px; margin-top:20px; }
   footer .wrap{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   footer p{ color:var(--text-faint); font-size:12px; margin:0; }
+
+  /* ================= ANIMATIONS ================= */
+  .pill .dot{ width:7px; height:7px; border-radius:50%; background:currentColor; display:inline-block; flex:none; }
+  .hero{ position:relative; overflow:hidden; isolation:isolate; }
+  .hero-art img{ position:relative; z-index:1; }
+  .dice{ display:inline-block; }
+  #confetti{ position:fixed; inset:0; pointer-events:none; z-index:90; }
+
+  @media (prefers-reduced-motion: no-preference){
+    /* hero: soft aurora, floating logo with rotating glow, staggered intro */
+    .hero::before{
+      content:""; position:absolute; z-index:-1; inset:-40%;
+      background:
+        radial-gradient(closest-side at 30% 40%, color-mix(in srgb, var(--gold) 16%, transparent), transparent),
+        radial-gradient(closest-side at 75% 65%, color-mix(in srgb, var(--arcane) 18%, transparent), transparent);
+      animation: aurora 14s ease-in-out infinite alternate;
+    }
+    .hero-art::before{
+      content:""; position:absolute; width:78%; aspect-ratio:1; border-radius:50%;
+      background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--gold) 55%, transparent), transparent 40%, color-mix(in srgb, var(--arcane) 50%, transparent), transparent 75%);
+      filter: blur(26px); opacity:.75; animation: spin 9s linear infinite;
+    }
+    .hero-art img{ animation: float 5s ease-in-out infinite; }
+    .hero > div:first-child > *{ animation: rise .6s cubic-bezier(.2,.7,.2,1) both; }
+    .hero > div:first-child > :nth-child(2){ animation-delay:.08s; }
+    .hero > div:first-child > :nth-child(3){ animation-delay:.16s; }
+    .hero > div:first-child > :nth-child(4){ animation-delay:.24s; }
+    .hero-art{ animation: popIn .7s cubic-bezier(.2,.8,.2,1.2) both .1s; }
+
+    /* staggered entrance when a tab is opened (not on live updates) */
+    .panel.entering :is(.grid > .card, .group-card, .social-card, .post, tbody tr, .round-col){
+      animation: rise .45s cubic-bezier(.2,.7,.2,1) both;
+      animation-delay: calc(var(--i, 0) * 45ms);
+    }
+
+    /* tabs & buttons */
+    nav.tabs button{ transition: background-color .2s, color .2s, transform .15s; }
+    .btn{ transition: transform .12s, filter .2s, border-color .2s; }
+    .btn:active:not(:disabled){ transform: scale(.96); }
+    .btn.primary:hover{ box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 25%, transparent); }
+
+    /* live status dots */
+    .pill.open .dot, .pill.live .dot{ animation: pulse 1.8s ease-out infinite; }
+
+    /* draw: dice roll + groups dealt like cards */
+    .rolling .dice{ animation: roll .7s cubic-bezier(.3,.6,.3,1); }
+    .dealt .group-card{ animation: deal .55s cubic-bezier(.2,.8,.2,1.1) both; animation-delay: calc(var(--i, 0) * 110ms); }
+    .dealt .round-col{ animation: rise .5s ease both; animation-delay: calc(.25s + var(--i, 0) * 90ms); }
+
+    /* match results */
+    .match{ transition: border-color .3s, box-shadow .3s; }
+    .match:has([data-pick]):hover{ box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+    .match.just-decided{ animation: pop .4s cubic-bezier(.2,.8,.2,1.4); }
+    .slot.just-won{ animation: winFlash 1.1s ease-out; }
+    .slot.just-won::after{ animation: checkIn .45s cubic-bezier(.2,.8,.2,1.6) both; }
+
+    /* champion */
+    .champion-banner{ position:relative; overflow:hidden; }
+    .champion-banner::after{
+      content:""; position:absolute; inset:0; transform:translateX(-120%);
+      background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, #fff 35%, transparent) 50%, transparent 70%);
+      animation: shine 3.8s ease-in-out infinite 1s;
+    }
+    .champion-banner .trophy{ display:inline-block; animation: bounce 1.6s ease-in-out infinite; }
+    .champion-banner.celebrate{ animation: champIn .8s cubic-bezier(.2,.8,.2,1.3) both; }
+
+    .toast{ transition: opacity .25s, transform .35s cubic-bezier(.2,.8,.2,1.3); }
+  }
+
+  @keyframes rise{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:none; } }
+  @keyframes popIn{ from{ opacity:0; transform:scale(.85); } to{ opacity:1; transform:none; } }
+  @keyframes float{ 0%,100%{ transform:translateY(0) rotate(-1deg); } 50%{ transform:translateY(-10px) rotate(1deg); } }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @keyframes aurora{ from{ transform:translate(-4%, -3%) rotate(0deg); } to{ transform:translate(4%, 3%) rotate(8deg); } }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 color-mix(in srgb, currentColor 60%, transparent); }
+    100%{ box-shadow:0 0 0 7px transparent; }
+  }
+  @keyframes roll{ 0%{ transform:rotate(0) scale(1); } 50%{ transform:rotate(200deg) scale(1.35); } 100%{ transform:rotate(360deg) scale(1); } }
+  @keyframes deal{
+    from{ opacity:0; transform:translateY(-30px) rotate(-4deg) scale(.92); }
+    to{ opacity:1; transform:none; }
+  }
+  @keyframes pop{ 0%{ transform:scale(1); } 45%{ transform:scale(1.04); } 100%{ transform:scale(1); } }
+  @keyframes winFlash{
+    0%{ background:color-mix(in srgb, var(--gold) 40%, transparent); }
+    100%{ background:transparent; }
+  }
+  @keyframes checkIn{ from{ opacity:0; transform:scale(0) rotate(-30deg); } to{ opacity:1; transform:none; } }
+  @keyframes shine{ 0%{ transform:translateX(-120%); } 45%,100%{ transform:translateX(120%); } }
+  @keyframes bounce{ 0%,100%{ transform:translateY(0) rotate(0); } 30%{ transform:translateY(-6px) rotate(-8deg); } 60%{ transform:translateY(0) rotate(6deg); } }
+  @keyframes champIn{ from{ opacity:0; transform:scale(.8) translateY(10px); } to{ opacity:1; transform:none; } }
 </style>
 </head>
 <body>
@@ -583,6 +675,92 @@
     toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2600);
   }
 
+  /* ---------- motion helpers ---------- */
+  var motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  function reduceMotion(){ return !!(motionQuery && motionQuery.matches); }
+
+  /* Staggered entrance of a panel's cards/rows. Only runs when a tab is
+     opened, so live updates from other users don't replay it. */
+  var STAGGER = '.grid > .card, .group-card, .social-card, .post, tbody tr, .round-col';
+  function animateEnter(panel){
+    if(!panel || reduceMotion()) return;
+    panel.querySelectorAll(STAGGER).forEach(function(el, i){ el.style.setProperty('--i', Math.min(i, 14)); });
+    panel.classList.remove('entering');
+    void panel.offsetWidth; // restart animations
+    panel.classList.add('entering');
+    clearTimeout(panel._enterTimer);
+    panel._enterTimer = setTimeout(function(){ panel.classList.remove('entering'); }, 1300);
+  }
+
+  /* Counts a number up/down to its new value. */
+  function countTo(el, value){
+    if(el._target === value) return;
+    el._target = value;
+    var from = parseInt(el.textContent, 10) || 0;
+    if(reduceMotion() || from === value){ el.textContent = value; return; }
+    var start = performance.now(), dur = 900;
+    cancelAnimationFrame(el._raf);
+    (function step(now){
+      var p = Math.min(1, (now - start) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(from + (value - from) * e);
+      if(p < 1) el._raf = requestAnimationFrame(step);
+    })(start);
+  }
+
+  /* Confetti burst in the brand colors. */
+  function confetti(originEl){
+    if(reduceMotion()) return;
+    var canvas = document.createElement('canvas');
+    canvas.id = 'confetti';
+    document.body.appendChild(canvas);
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var r = originEl ? originEl.getBoundingClientRect() : {left: innerWidth / 2, width: 0, top: innerHeight / 3};
+    // burst from the banner, kept inside the visible area even if it's scrolled away
+    var ox = r.left + r.width / 2, oy = Math.min(Math.max(80, r.top), innerHeight * 0.7);
+    var colors = ['#e8b923', '#ffd95a', '#8b6cf2', '#b9a4ff', '#46c98a', '#ffffff'];
+    var parts = [];
+    for(var i = 0; i < 160; i++){
+      var ang = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.1, sp = 6 + Math.random() * 9;
+      parts.push({x: ox, y: oy, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, w: 5 + Math.random() * 6, h: 8 + Math.random() * 8,
+        rot: Math.random() * 6.28, vr: (Math.random() - .5) * .35, c: colors[i % colors.length]});
+    }
+    var start = performance.now();
+    (function frame(now){
+      var t = now - start;
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      parts.forEach(function(p){
+        p.vy += .28; p.vx *= .985; p.vy *= .985; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, 1 - t / 3200);
+        ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.rot * 2)));
+        ctx.restore();
+      });
+      if(t < 3200) requestAnimationFrame(frame); else canvas.remove();
+    })(start);
+  }
+
+  /* Remembers matches whose winner just changed (locally or by another
+     user) so their card flashes once. */
+  var booted = false;
+  var flashUntil = {};
+  function winnersMap(){
+    var o = {};
+    state.matches.forEach(function(m){ o[m.id] = m.winnerId || ''; });
+    return o;
+  }
+  function noteWinnerChanges(before){
+    if(!booted || reduceMotion()) return;
+    var until = Date.now() + 1500;
+    state.matches.forEach(function(m){
+      if(m.winnerId && before[m.id] !== m.winnerId) flashUntil[m.id] = until;
+    });
+  }
+  function isFlashing(id){ return flashUntil[id] && flashUntil[id] > Date.now(); }
+
   /* ---------- tabs ---------- */
   var tabButtons = document.querySelectorAll('#tabs button');
   function showTab(name){
@@ -590,6 +768,7 @@
     document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('active', p.id === 'panel-' + name); });
     try{ localStorage.setItem('ma_tab', name); }catch(e){}
     window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+    animateEnter(document.getElementById('panel-' + name));
   }
   tabButtons.forEach(function(b){ b.addEventListener('click', function(){ showTab(b.dataset.tab); }); });
   document.querySelectorAll('[data-goto]').forEach(function(b){
@@ -698,7 +877,9 @@
       return o.data ? Object.assign({}, o, {data: stripId(o.data)}) : o;
     });
     if(!ops.length) return Promise.resolve(true);
+    var before = winnersMap();
     applyOps(ops);
+    noteWinnerChanges(before);
     renderAll();
     if(!online){ saveLocal(); return Promise.resolve(true); }
     inflight++;
@@ -726,7 +907,12 @@
       .then(function(res){ if(!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
       .then(function(j){
         if(inflight){ refreshWanted = true; return; } // our own writes are still on the way
-        if(j.version >= version){ version = j.version; setState(j); renderAll(); }
+        if(j.version >= version){
+          var before = winnersMap();
+          version = j.version; setState(j);
+          noteWinnerChanges(before);
+          renderAll();
+        }
       })
       .catch(function(){})
       .then(function(){
@@ -801,6 +987,8 @@
       document.getElementById('offlineNotice').hidden = false;
       renderAll();
     }
+    booted = true;
+    animateEnter(document.querySelector('.panel.active'));
   }
 
   /* Data saved by the previous version only lived in each browser. Offer to
@@ -875,14 +1063,14 @@
 
   /* ================= RENDER: INICIO ================= */
   function renderInicio(){
-    document.getElementById('statTorneos').textContent = state.tournaments.length;
+    countTo(document.getElementById('statTorneos'), state.tournaments.length);
     var players = {};
     state.registrations.forEach(function(r){ players[r.tag] = true; });
-    document.getElementById('statJugadores').textContent = Object.keys(players).length;
+    countTo(document.getElementById('statJugadores'), Object.keys(players).length);
     var jugadas = state.matches.filter(function(m){ return m.winnerId && m.playerAId && m.playerBId; }).length;
-    document.getElementById('statPartidas').textContent = jugadas;
+    countTo(document.getElementById('statPartidas'), jugadas);
     var abiertos = state.tournaments.filter(function(t){ return t.status === 'abierto'; });
-    document.getElementById('statAbiertos').textContent = abiertos.length;
+    countTo(document.getElementById('statAbiertos'), abiertos.length);
 
     var box = document.getElementById('inicioAbiertos');
     if(!abiertos.length){
@@ -893,9 +1081,9 @@
   }
 
   function statusPill(status){
-    if(status === 'abierto') return '<span class="pill open">● Abierto</span>';
-    if(status === 'en curso') return '<span class="pill live">● En curso</span>';
-    return '<span class="pill done">● Finalizado</span>';
+    if(status === 'abierto') return '<span class="pill open"><span class="dot"></span>Abierto</span>';
+    if(status === 'en curso') return '<span class="pill live"><span class="dot"></span>En curso</span>';
+    return '<span class="pill done"><span class="dot"></span>Finalizado</span>';
   }
 
   function tournamentCard(t){
@@ -1194,7 +1382,8 @@
     var tid = document.getElementById('sTorneo').value;
     var t = state.tournaments.find(function(t){ return t.id === tid; });
     var btn = document.getElementById('btnSorteo');
-    btn.textContent = (t && t.mode === 'equipos') ? '🎲 Sortear equipos (2v2) y armar grupos' : '🎲 Realizar sorteo aleatorio';
+    var label = '<span class="dice">🎲</span> ' + ((t && t.mode === 'equipos') ? 'Sortear equipos (2v2) y armar grupos' : 'Realizar sorteo aleatorio');
+    if(btn._label !== label){ btn.innerHTML = label; btn._label = label; } // don't cut the dice animation
   }
 
   function shuffle(arr){
@@ -1252,7 +1441,16 @@
     draw.matches.forEach(function(m){ ops.push({op:'set', col:'matches', id:m.id, data:m}); });
     ops.push({op:'merge', col:'tournaments', id:tid, data: Object.assign(
       {status:'en curso', totalRounds:null, ligaJornadas:null, champDecided:null}, draw.patch)});
+    var btn = this;
+    btn.disabled = true;
+    if(!reduceMotion()){
+      btn.classList.add('rolling');
+      await new Promise(function(r){ setTimeout(r, 650); }); // a moment of suspense while the dice rolls
+      btn.classList.remove('rolling');
+    }
+    dealtUntil[tid] = Date.now() + 1600;
     var ok = await commit(ops);
+    btn.disabled = false;
     if(!ok) return;
     if(built.leftover) toast('Número impar de jugadores: ' + built.leftover.name + ' quedó sin pareja y no entra en el sorteo.');
     else toast('Sorteo realizado. ' + B.describeFormat(built.entrants.length, t.format));
@@ -1312,6 +1510,7 @@
     var info = document.getElementById('sorteoInfo');
     if(!t){
       area.innerHTML = '<div class="empty"><b>Sin torneos</b>Crea un torneo para poder sortear.</div>';
+      area._html = null;
       info.textContent = '';
       return;
     }
@@ -1325,6 +1524,7 @@
 
     if(!ms.length){
       area.innerHTML = '<div class="empty"><b>Sin sorteo todavía</b>Presiona el botón de arriba para armar los grupos con los inscritos.</div>';
+      area._html = null;
       return;
     }
     var st = B.structure(t, ms);
@@ -1337,13 +1537,26 @@
       }
     }
 
+    var now = Date.now();
+    var champ = B.champion(t, state.matches);
+    var champKey = champ ? champ.id : '';
+    var celebrateNow = booted && champKey && lastChamp.hasOwnProperty(tid) && lastChamp[tid] !== champKey;
+    lastChamp[tid] = champKey;
+    if(celebrateNow) celebrateUntil[tid] = now + 1200;
+
     var html = '';
     if(st.groups.length) html += renderGroups(t, st, ms);
     html += renderKnockout(st, ms);
-    var champ = B.champion(t, state.matches);
-    if(champ) html += '<div class="champion-banner">🏆 Campeón: <b>' + esc(champ.name) + '</b></div>';
-    area.innerHTML = html;
+    if(champ){
+      html += '<div class="champion-banner' + (celebrateUntil[tid] > now ? ' celebrate' : '') + '">' +
+        '<span class="trophy">🏆</span> Campeón: <b>' + esc(champ.name) + '</b></div>';
+    }
+    if(dealtUntil[tid] > now) html = '<div class="dealt">' + html + '</div>';
+    // identical re-renders (live refreshes) would restart animations: skip them
+    if(area._html !== html){ area.innerHTML = html; area._html = html; }
+    if(celebrateNow) confetti(area.querySelector('.champion-banner'));
   }
+  var lastChamp = {}, celebrateUntil = {}, dealtUntil = {};
 
   function renderGroups(t, st, ms){
     var unit = t.mode === 'equipos' ? 'Equipo' : 'Jugador';
@@ -1366,7 +1579,7 @@
         return '<div class="jornada">Jornada ' + r + '</div><div class="group-matches">' +
           byRound[r].sort(function(a,b){ return a.slot - b.slot; }).map(renderMatchCard).join('') + '</div>';
       }).join('');
-      return '<div class="group-card"><h3>' + esc(g.name) + '</h3>' + table + rounds + '</div>';
+      return '<div class="group-card" style="--i:' + gi + '"><h3>' + esc(g.name) + '</h3>' + table + rounds + '</div>';
     });
     return '<h2 class="stage-title">Fase de grupos</h2><p class="help-line">Clasifican los 2 mejores de cada grupo. Desempate: duelo directo y, si persiste, el orden del sorteo.</p>' +
       '<div class="groups-grid">' + cards.join('') + '</div>';
@@ -1387,7 +1600,7 @@
         else if(r === 1 && placeholders) cards += placeholderCard(placeholders[s][0], placeholders[s][1]);
         else cards += placeholderCard('Por definir', 'Por definir');
       }
-      cols.push('<div class="round-col"><div class="round-title">' + B.roundName(r, K) + '</div>' + cards + '</div>');
+      cols.push('<div class="round-col" style="--i:' + (r - 1) + '"><div class="round-title">' + B.roundName(r, K) + '</div>' + cards + '</div>');
     }
     var head = st.groups.length
       ? '<h2 class="stage-title">Eliminatoria</h2>' + (placeholders ? '<p class="help-line">Se arma automáticamente al terminar la fase de grupos (1° de un grupo contra 2° de otro).</p>' : '')
@@ -1403,6 +1616,7 @@
   function renderMatchCard(m){
     var decided = !!m.winnerId;
     var full = !!(m.playerAId && m.playerBId);
+    var flashing = decided && isFlashing(m.id);
     function slotHtml(side){
       var id = side === 'A' ? m.playerAId : m.playerBId;
       var name = side === 'A' ? m.playerAName : m.playerBName;
@@ -1410,7 +1624,7 @@
         return '<div class="slot ' + (m.bye ? 'bye' : 'tbd') + '"><span>' + (m.bye ? 'Pasa directo (BYE)' : 'Por definir') + '</span></div>';
       }
       var isWin = decided && m.winnerId === id;
-      var cls = 'slot' + (isWin ? ' winner' : '') + (decided && !isWin ? ' loser' : '');
+      var cls = 'slot' + (isWin ? ' winner' : '') + (decided && !isWin ? ' loser' : '') + (isWin && flashing ? ' just-won' : '');
       var canPick = full && !isWin;
       var attr = canPick
         ? ' data-pick="' + esc(m.id) + '|' + side + '" title="' + (decided ? 'Cambiar ganador a ' + esc(name) : 'Marcar como ganador') + '"'
@@ -1420,7 +1634,7 @@
     var foot = (decided && full && !m.bye)
       ? '<div class="match-foot"><button class="undo-btn" type="button" data-undo="' + esc(m.id) + '" title="Quitar este resultado para elegir al ganador correcto">↺ Quitar resultado</button></div>'
       : '';
-    return '<div class="match' + (decided ? ' decided' : '') + '">' + slotHtml('A') + slotHtml('B') + foot + '</div>';
+    return '<div class="match' + (decided ? ' decided' : '') + (flashing ? ' just-decided' : '') + '">' + slotHtml('A') + slotHtml('B') + foot + '</div>';
   }
 
   /* ================= RENDER: CLASIFICACION ================= */
