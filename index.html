@@ -290,6 +290,22 @@
   .hero{ position:relative; overflow:hidden; isolation:isolate; }
   .dice{ display:inline-block; }
   #confetti{ position:fixed; inset:0; pointer-events:none; z-index:90; }
+  /* Knockout "K.O." scene shown when a player is eliminated */
+  .ko-overlay{
+    position:fixed; inset:0; z-index:85; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+    padding:16px; background:rgba(5,5,7,.86); cursor:pointer; animation:koIn .25s ease-out both;
+  }
+  .ko-overlay.closing{ animation:koOut .3s ease-in both; }
+  .ko-overlay .ko-stage{
+    width:min(100%, 1100px, calc((100vh - 90px) * 16 / 9)); aspect-ratio:16/9; border-radius:14px; overflow:hidden;
+    background:#17171a; box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 0 2px #881419;
+  }
+  .ko-overlay svg{ display:block; width:100%; height:100%; }
+  .ko-overlay .ko-hint{ color:#a0a1a7; font:500 13px Inter, system-ui, sans-serif; letter-spacing:.04em; }
+  .ko-overlay .bob{ animation:koBob .5s ease-in-out infinite alternate; }
+  @keyframes koBob{ to{ transform:translateY(-6px); } }
+  @keyframes koIn{ from{ opacity:0; } }
+  @keyframes koOut{ to{ opacity:0; } }
 
   @media (prefers-reduced-motion: no-preference){
     /* hero: soft aurora, staggered intro, stat tiles pop in */
@@ -1098,6 +1114,38 @@
     })(start);
   }
 
+  /* "K.O." scene: Kraneo kicks the eliminated player (Glitchy) off screen.
+     Plays one 6 s loop; click, Esc or the timer closes it. Callbacks queued
+     with afterKo() (e.g. the champion confetti) run once it closes. */
+  var koState = null;
+  function clip(s, n){ s = String(s || ''); return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+  function showKnockout(winner, loser){
+    if(reduceMotion()){ toast(loser + ' queda eliminado. Gana ' + winner + '.'); return; }
+    closeKnockout(true);
+    var tpl = document.getElementById('koTpl');
+    var ov = document.createElement('div');
+    ov.className = 'ko-overlay';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-label', loser + ' eliminado por ' + winner);
+    ov.appendChild(tpl.content.cloneNode(true));
+    ov.querySelector('.ko-winner').textContent = clip(winner, 26).toUpperCase() + ' GANA';
+    ov.querySelector('.ko-loser').textContent = clip(loser, 26).toUpperCase() + ' · ELIMINADO';
+    ov.querySelector('.ko-tag').textContent = clip(loser, 14).toUpperCase();
+    ov.addEventListener('click', function(){ closeKnockout(); });
+    document.body.appendChild(ov);
+    koState = {el: ov, after: [], timer: setTimeout(function(){ closeKnockout(); }, 5900)};
+  }
+  function closeKnockout(instant){
+    if(!koState) return;
+    var k = koState; koState = null;
+    clearTimeout(k.timer);
+    if(instant) k.el.remove();
+    else { k.el.classList.add('closing'); setTimeout(function(){ k.el.remove(); }, 300); }
+    k.after.forEach(function(fn){ fn(); });
+  }
+  function afterKo(fn){ if(koState) koState.after.push(fn); else fn(); }
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeKnockout(); });
+
   /* Remembers matches whose winner just changed (locally or by another
      user) so their card flashes once. */
   var booted = false;
@@ -1854,6 +1902,13 @@
     } else if(res.cleared){
       if(!confirm('Este cambio también borra ' + res.cleared + ' resultado(s) de rondas posteriores que dependían de este partido. ¿Continuar?')) return;
     }
+    var wasWinner = m.winnerId;
+    var isKo = B.isKoMatch(B.normalize(m)) && !m.bye && m.playerAId && m.playerBId;
+    // open the K.O. scene first so the champion confetti (fired by the
+    // re-render inside commit) waits for it to close
+    if(side && isKo && (side === 'A' ? m.playerAId : m.playerBId) !== wasWinner){
+      showKnockout(side === 'A' ? m.playerAName : m.playerBName, side === 'A' ? m.playerBName : m.playerAName);
+    }
     commit(resultOps(t, res));
     if(!side) toast('Resultado quitado. Ahora elige al ganador correcto.');
   }
@@ -1918,7 +1973,7 @@
     if(dealtUntil[tid] > now) html = '<div class="dealt">' + html + '</div>';
     // identical re-renders (live refreshes) would restart animations: skip them
     if(area._html !== html){ area.innerHTML = html; area._html = html; }
-    if(celebrateNow) confetti(area.querySelector('.champion-banner'));
+    if(celebrateNow) afterKo(function(){ confetti(document.querySelector('#bracketArea .champion-banner')); });
   }
   var lastChamp = {}, celebrateUntil = {}, dealtUntil = {};
 
@@ -2201,5 +2256,232 @@
 
 })();
 </script>
+
+<!-- K.O. scene, cloned by showKnockout() each time a player is eliminated -->
+<template id="koTpl">
+<div class="ko-stage">
+<svg viewBox="0 0 1280 720" aria-hidden="true">
+<defs>
+<linearGradient id="pGloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3c3c42"/><stop offset="45%" stop-color="#151517"/><stop offset="100%" stop-color="#050506"/></linearGradient>
+<linearGradient id="pChrome" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="45%" stop-color="#c3c6cc"/><stop offset="55%" stop-color="#6b6e75"/><stop offset="100%" stop-color="#e3e5e9"/></linearGradient>
+<linearGradient id="pIvory" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f3efe6"/><stop offset="100%" stop-color="#b9b2a3"/></linearGradient>
+<linearGradient id="pChromeText" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="48%" stop-color="#c9ccd2"/><stop offset="52%" stop-color="#6e7178"/><stop offset="100%" stop-color="#e6e8ec"/></linearGradient>
+<radialGradient id="pRoom" cx="45%" cy="45%" r="60%"><stop offset="0%" stop-color="#D3121B" stop-opacity="0.22"/><stop offset="100%" stop-color="#D3121B" stop-opacity="0"/></radialGradient>
+<filter id="pGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<clipPath id="pPoster"><rect x="1048" y="104" width="150" height="150" rx="8"/></clipPath>
+
+<g id="pSkull">
+<path d="M300 44 C 360 44 392 86 392 138 C 392 166 382 184 370 196 C 366 206 360 212 352 216 L 248 216 C 240 212 234 206 230 196 C 218 184 208 166 208 138 C 208 86 240 44 300 44 Z" fill="url(#pGloss)" stroke="#D3121B" stroke-width="4"/>
+<path d="M222 150 C 214 110 236 66 282 54" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.14" stroke-linecap="round"/>
+<ellipse cx="334" cy="80" rx="26" ry="10" fill="#ffffff" opacity="0.2" transform="rotate(25 334 80)"/>
+<polyline points="318,50 310,72 320,88 314,104" fill="none" stroke="#D3121B" stroke-width="2.5" filter="url(#pGlow)"/>
+<path d="M234 128 C 220 110 212 88 216 62 C 228 86 244 100 258 112 Z" fill="url(#pIvory)" stroke="#000" stroke-width="1.5"/>
+<path d="M366 128 C 380 110 388 88 384 62 C 372 86 356 100 342 112 Z" fill="url(#pIvory)" stroke="#000" stroke-width="1.5"/>
+<path d="M244 144 C 262 136 284 142 296 154 C 298 170 290 184 272 184 C 254 184 242 170 244 144 Z" fill="#030304"/>
+<path d="M356 144 C 338 136 316 142 304 154 C 302 170 310 184 328 184 C 346 184 358 170 356 144 Z" fill="#030304"/>
+<path d="M238 136 C 258 132 282 138 298 152" fill="none" stroke="#45454b" stroke-width="3" stroke-linecap="round"/>
+<path d="M362 136 C 342 132 318 138 302 152" fill="none" stroke="#45454b" stroke-width="3" stroke-linecap="round"/>
+<ellipse cx="272" cy="164" rx="10" ry="6" fill="#FF2A2A" filter="url(#pGlow)" transform="rotate(14 272 164)"/>
+<ellipse cx="328" cy="164" rx="10" ry="6" fill="#FF2A2A" filter="url(#pGlow)" transform="rotate(-14 328 164)"/>
+<ellipse cx="273" cy="164" rx="3.5" ry="2" fill="#ffd6d6"/>
+<ellipse cx="327" cy="164" rx="3.5" ry="2" fill="#ffd6d6"/>
+<path d="M300 186 C 296 192 289 198 291 206 L 300 201 L 309 206 C 311 198 304 192 300 186 Z" fill="#030304"/>
+<path d="M230 190 C 242 198 256 198 266 194" fill="none" stroke="#4a4a50" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M370 190 C 358 198 344 198 334 194" fill="none" stroke="#4a4a50" stroke-width="2.5" stroke-linecap="round"/>
+<g fill="url(#pIvory)" stroke="#000" stroke-width="1">
+<rect x="261" y="208" width="9" height="16" rx="3"/><rect x="271" y="208" width="9" height="17" rx="3"/><rect x="281" y="208" width="9" height="18" rx="3"/><rect x="291" y="208" width="9" height="18" rx="3"/>
+<rect x="300" y="208" width="9" height="18" rx="3"/><rect x="310" y="208" width="9" height="18" rx="3"/><rect x="320" y="208" width="9" height="17" rx="3"/><rect x="330" y="208" width="9" height="16" rx="3"/>
+</g>
+<path d="M248 222 C 250 242 270 258 300 260 C 330 258 350 242 352 222 L 342 222 L 338 232 L 262 232 L 258 222 Z" fill="url(#pGloss)" stroke="#D3121B" stroke-width="3"/>
+<g fill="url(#pIvory)" stroke="#000" stroke-width="1">
+<rect x="264" y="222" width="9" height="13" rx="3"/><rect x="274" y="222" width="9" height="14" rx="3"/><rect x="284" y="222" width="9" height="14" rx="3"/><rect x="294" y="222" width="12" height="14" rx="3"/>
+<rect x="307" y="222" width="9" height="14" rx="3"/><rect x="317" y="222" width="9" height="14" rx="3"/><rect x="327" y="222" width="9" height="13" rx="3"/>
+</g>
+</g>
+
+<g id="pTorso">
+<g fill="url(#pGloss)" stroke="#D3121B" stroke-width="2">
+<rect x="290" y="258" width="20" height="10" rx="4"/><rect x="290" y="272" width="20" height="10" rx="4"/><rect x="288" y="384" width="24" height="12" rx="4"/>
+<rect x="287" y="400" width="26" height="13" rx="4"/><rect x="286" y="417" width="28" height="14" rx="4"/><rect x="285" y="435" width="30" height="14" rx="4"/>
+<rect x="284" y="453" width="32" height="15" rx="4"/><rect x="284" y="472" width="32" height="15" rx="4"/>
+</g>
+<path d="M300 498 C 270 486 234 490 228 520 C 226 544 250 558 272 554 L 300 566 L 328 554 C 350 558 374 544 372 520 C 366 490 330 486 300 498 Z" fill="url(#pGloss)" stroke="#D3121B" stroke-width="3"/>
+<ellipse cx="268" cy="534" rx="10" ry="13" fill="#050506"/>
+<ellipse cx="332" cy="534" rx="10" ry="13" fill="#050506"/>
+<circle cx="272" cy="556" r="11" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<rect x="224" y="494" width="152" height="16" rx="4" fill="#1f1f22" stroke="#D3121B" stroke-width="2"/>
+<rect x="278" y="487" width="44" height="30" rx="6" fill="url(#pChrome)" stroke="#000" stroke-width="2"/>
+<text x="300" y="510" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="22" fill="#111">MA</text>
+<g stroke-linecap="round" fill="none">
+<g stroke="#D3121B" stroke-width="13">
+<path d="M294 304 C 248 296 216 314 220 352"/><path d="M294 322 C 250 316 222 334 226 372"/><path d="M294 340 C 254 336 228 354 234 390"/><path d="M294 358 C 258 356 238 372 244 402"/><path d="M294 374 C 266 374 250 390 256 410"/>
+<path d="M306 304 C 352 296 384 314 380 352"/><path d="M306 322 C 350 316 378 334 374 372"/><path d="M306 340 C 346 336 372 354 366 390"/><path d="M306 358 C 342 356 362 372 356 402"/><path d="M306 374 C 334 374 350 390 344 410"/>
+</g>
+<g stroke="#1a1a1d" stroke-width="8">
+<path d="M294 304 C 248 296 216 314 220 352"/><path d="M294 322 C 250 316 222 334 226 372"/><path d="M294 340 C 254 336 228 354 234 390"/><path d="M294 358 C 258 356 238 372 244 402"/><path d="M294 374 C 266 374 250 390 256 410"/>
+<path d="M306 304 C 352 296 384 314 380 352"/><path d="M306 322 C 350 316 378 334 374 372"/><path d="M306 340 C 346 336 372 354 366 390"/><path d="M306 358 C 342 356 362 372 356 402"/><path d="M306 374 C 334 374 350 390 344 410"/>
+</g>
+</g>
+<rect x="291" y="290" width="18" height="94" rx="8" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<circle cx="300" cy="340" r="7" fill="#FF2A2A" filter="url(#pGlow)" opacity="0.9"/>
+<g stroke-linecap="round" fill="none">
+<path d="M296 292 C 266 282 234 282 206 292" stroke="#D3121B" stroke-width="13"/><path d="M304 292 C 334 282 366 282 394 292" stroke="#D3121B" stroke-width="13"/>
+<path d="M296 292 C 266 282 234 282 206 292" stroke="#1a1a1d" stroke-width="8"/><path d="M304 292 C 334 282 366 282 394 292" stroke="#1a1a1d" stroke-width="8"/>
+</g>
+</g>
+
+<g id="pPad">
+<path d="M214 278 C 176 270 146 294 148 334 L 196 324 L 222 296 Z" fill="url(#pGloss)" stroke="#D3121B" stroke-width="3"/>
+<polygon points="160,304 136,270 176,294" fill="url(#pChrome)" stroke="#000" stroke-width="1.5"/>
+<polygon points="184,288 178,250 202,284" fill="url(#pChrome)" stroke="#000" stroke-width="1.5"/>
+<polygon points="152,326 124,316 154,312" fill="url(#pChrome)" stroke="#000" stroke-width="1.5"/>
+<path d="M156 322 C 162 302 182 290 206 290" stroke="url(#pChrome)" stroke-width="3" fill="none"/>
+</g>
+
+<g id="pCtrl">
+<path d="M440 566 C 428 566 420 576 418 590 L 408 642 C 405 658 424 666 437 652 L 458 627 L 522 627 L 543 652 C 556 666 575 658 572 642 L 562 590 C 560 576 552 566 540 566 Z" fill="url(#pGloss)" stroke="#D3121B" stroke-width="3"/>
+<path d="M444 572 L536 572" stroke="url(#pChrome)" stroke-width="4" stroke-linecap="round"/>
+<rect x="440" y="588" width="24" height="8" rx="2" fill="#3a3a40"/>
+<rect x="448" y="580" width="8" height="24" rx="2" fill="#3a3a40"/>
+<circle cx="528" cy="582" r="5" fill="#3a3a40"/><circle cx="528" cy="602" r="5" fill="#3a3a40"/><circle cx="518" cy="592" r="5" fill="#3a3a40"/>
+<circle cx="538" cy="592" r="5" fill="#D3121B" filter="url(#pGlow)"/>
+<circle cx="472" cy="612" r="10" fill="#0b0b0c" stroke="#55555c" stroke-width="2"/>
+<circle cx="508" cy="612" r="10" fill="#0b0b0c" stroke="#55555c" stroke-width="2"/>
+</g>
+</defs>
+
+<!-- room -->
+<rect x="0" y="0" width="1280" height="668" fill="#17171a"/>
+<rect x="0" y="0" width="1280" height="668" fill="url(#pRoom)"/>
+<rect x="0" y="668" width="1280" height="52" fill="#0b0b0c"/>
+<line x1="0" y1="668" x2="1280" y2="668" stroke="#D3121B" stroke-width="2" opacity="0.6"/>
+<g stroke="#232327" stroke-width="2"><line x1="0" y1="200" x2="1280" y2="200"/><line x1="0" y1="420" x2="1280" y2="420"/></g>
+<rect x="1040" y="96" width="166" height="166" rx="12" fill="#0e0e10" stroke="#D3121B" stroke-width="2"/>
+<image href="logo.jpg" x="1048" y="104" width="150" height="150" preserveAspectRatio="xMidYMid slice" clip-path="url(#pPoster)"/>
+
+<!-- KRANEO -->
+<ellipse cx="386" cy="672" rx="110" ry="10" fill="#000" opacity="0.5"/>
+<svg x="200" y="144" width="372" height="558" viewBox="0 0 600 900" overflow="visible">
+<g>
+<animateTransform attributeName="transform" type="rotate" dur="6s" repeatCount="indefinite" values="0 290 820; 0 290 820; 5 290 820; -7 290 820; -7 290 820; 0 290 820; 0 290 820" keyTimes="0;0.37;0.43;0.47;0.55;0.65;1"/>
+<g class="bob">
+<g stroke-linecap="round" fill="none">
+<line x1="272" y1="556" x2="262" y2="682" stroke="#D3121B" stroke-width="20"/>
+<line x1="272" y1="556" x2="262" y2="682" stroke="#1a1a1d" stroke-width="14"/>
+<line x1="256" y1="700" x2="254" y2="812" stroke="#D3121B" stroke-width="15"/>
+<line x1="256" y1="700" x2="254" y2="812" stroke="#1a1a1d" stroke-width="10"/>
+</g>
+<circle cx="262" cy="690" r="14" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<path d="M246 812 L276 812 L290 836 L292 846 L224 846 L230 832 Z" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<g>
+<animateTransform attributeName="transform" type="rotate" dur="6s" repeatCount="indefinite" values="0 328 556; 0 328 556; 20 328 556; -62 328 556; -62 328 556; 0 328 556; 0 328 556" keyTimes="0;0.37;0.43;0.47;0.55;0.65;1"/>
+<g stroke-linecap="round" fill="none">
+<line x1="328" y1="556" x2="338" y2="682" stroke="#D3121B" stroke-width="20"/>
+<line x1="328" y1="556" x2="338" y2="682" stroke="#1a1a1d" stroke-width="14"/>
+<line x1="344" y1="700" x2="346" y2="812" stroke="#D3121B" stroke-width="15"/>
+<line x1="344" y1="700" x2="346" y2="812" stroke="#1a1a1d" stroke-width="10"/>
+</g>
+<circle cx="338" cy="690" r="14" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<path d="M354 812 L324 812 L310 836 L308 846 L376 846 L370 832 Z" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<circle cx="328" cy="556" r="11" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+</g>
+<use href="#pTorso"/>
+<g stroke-linecap="round" fill="none">
+<line x1="200" y1="300" x2="172" y2="418" stroke="#D3121B" stroke-width="18"/>
+<line x1="200" y1="300" x2="172" y2="418" stroke="#1a1a1d" stroke-width="12"/>
+<line x1="170" y1="426" x2="154" y2="528" stroke="#D3121B" stroke-width="12"/>
+<line x1="170" y1="426" x2="154" y2="528" stroke="#1a1a1d" stroke-width="7"/>
+<line x1="400" y1="300" x2="438" y2="410" stroke="#D3121B" stroke-width="18"/>
+<line x1="400" y1="300" x2="438" y2="410" stroke="#1a1a1d" stroke-width="12"/>
+<line x1="442" y1="418" x2="474" y2="518" stroke="#D3121B" stroke-width="12"/>
+<line x1="442" y1="418" x2="474" y2="518" stroke="#1a1a1d" stroke-width="7"/>
+</g>
+<circle cx="172" cy="420" r="11" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<ellipse cx="155" cy="539" rx="18" ry="13" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<circle cx="442" cy="414" r="11" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<use href="#pPad"/>
+<use href="#pCtrl"/>
+<ellipse cx="476" cy="532" rx="18" ry="12" fill="url(#pGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<g stroke-linecap="round" fill="none">
+<g stroke="#D3121B" stroke-width="9"><path d="M462 540 L456 562 L462 580"/><path d="M476 544 L478 570 L484 584"/><path d="M492 538 L502 558 L506 574"/></g>
+<g stroke="#1a1a1d" stroke-width="5"><path d="M462 540 L456 562 L462 580"/><path d="M476 544 L478 570 L484 584"/><path d="M492 538 L502 558 L506 574"/></g>
+</g>
+<use href="#pSkull"/>
+<g opacity="0">
+<animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.3;0.34;0.56;0.62;1"/>
+<ellipse cx="272" cy="164" rx="18" ry="10" fill="#FF2A2A" filter="url(#pGlow)" opacity="0.7" transform="rotate(14 272 164)"/>
+<ellipse cx="328" cy="164" rx="18" ry="10" fill="#FF2A2A" filter="url(#pGlow)" opacity="0.7" transform="rotate(-14 328 164)"/>
+</g>
+</g>
+</g>
+</svg>
+
+<!-- Glitchy = the eliminated player -->
+<g>
+<animateTransform attributeName="transform" type="translate" dur="6s" repeatCount="indefinite" values="1400 668; 640 668; 640 668; 668 630; 1360 -160; 1360 -160" keyTimes="0;0.2;0.465;0.48;0.66;1"/>
+<g>
+<animateTransform attributeName="transform" type="translate" dur="6s" repeatCount="indefinite" values="0 0;0 -32;0 0;0 -32;0 0;0 0;0 -44;0 0;0 -44;0 0;0 0" keyTimes="0;0.05;0.1;0.15;0.2;0.27;0.3;0.33;0.36;0.39;1"/>
+<g>
+<animateTransform attributeName="transform" type="rotate" dur="6s" repeatCount="indefinite" values="0 0 -55;0 0 -55;-900 0 -55;-900 0 -55" keyTimes="0;0.47;0.66;1"/>
+<ellipse cx="0" cy="2" rx="62" ry="8" fill="#000" opacity="0.35"/>
+<path d="M28 -22 C 56 -36 92 -30 95 -14 C 97 0 70 4 40 -2 Z" fill="#5a36c9" stroke="#2a145e" stroke-width="3"/>
+<g fill="#a98bff" opacity="0.85"><rect x="52" y="-24" width="8" height="8" rx="1.5"/><rect x="68" y="-18" width="8" height="8" rx="1.5"/><rect x="80" y="-22" width="7" height="7" rx="1.5"/></g>
+<path d="M-42 0 L-36 -12 L-12 -12 L-6 0 L-14 -3 L-20 0 L-27 -3 L-34 0 Z" fill="#2a145e"/>
+<path d="M42 0 L36 -12 L12 -12 L6 0 L14 -3 L20 0 L27 -3 L34 0 Z" fill="#2a145e"/>
+<path d="M0 -112 C 40 -112 54 -80 54 -48 C 54 -18 34 -6 0 -6 C -34 -6 -54 -18 -54 -48 C -54 -80 -40 -112 0 -112 Z" fill="#7b4dff" stroke="#2a145e" stroke-width="4"/>
+<g fill="#a98bff"><rect x="-18" y="-32" width="10" height="10" rx="2"/><rect x="-6" y="-22" width="8" height="8" rx="2"/><rect x="8" y="-30" width="10" height="10" rx="2"/><rect x="-42" y="-90" width="9" height="9" rx="2"/></g>
+<g stroke="#2a145e" stroke-width="5" stroke-linecap="round" fill="none"><path d="M-50 -46 L-68 -62 L-76 -58"/><path d="M50 -46 L70 -34 L78 -40"/></g>
+<g fill="#2a145e"><path d="M-82 -62 L-72 -67 L-74 -53 Z"/><path d="M84 -44 L74 -47 L78 -33 Z"/></g>
+<circle cx="-16" cy="-84" r="12" fill="#ffffff" stroke="#2a145e" stroke-width="3"/>
+<circle cx="16" cy="-84" r="12" fill="#ffffff" stroke="#2a145e" stroke-width="3"/>
+<circle cx="-14" cy="-83" r="6.5" fill="#ffd84d"/>
+<circle cx="18" cy="-83" r="6.5" fill="#ffd84d"/>
+<ellipse cx="-14" cy="-83" rx="2" ry="5" fill="#111"/>
+<ellipse cx="18" cy="-83" rx="2" ry="5" fill="#111"/>
+<path d="M-32 -100 L-6 -94" stroke="#2a145e" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M32 -100 L6 -94" stroke="#2a145e" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M-36 -60 C -36 -70 36 -70 36 -60 C 36 -44 20 -38 0 -38 C -20 -38 -36 -44 -36 -60 Z" fill="#2a145e" stroke="#120830" stroke-width="3"/>
+<ellipse cx="-8" cy="-62" rx="3" ry="2" fill="#a98bff"/>
+<ellipse cx="8" cy="-62" rx="3" ry="2" fill="#a98bff"/>
+<path d="M-24 -50 C -10 -42 10 -42 26 -52" stroke="#a98bff" stroke-width="3" stroke-linecap="round" fill="none"/>
+<polygon points="-10,-46 -7,-40 -4,-45" fill="#ffffff"/>
+<polygon points="8,-45 11,-40 14,-46" fill="#ffffff"/>
+<text class="ko-tag" x="0" y="-128" text-anchor="middle" font-family="Teko, sans-serif" font-weight="600" font-size="30" letter-spacing="1" fill="#e9e1ff" stroke="#120830" stroke-width="5" paint-order="stroke"></text>
+</g>
+</g>
+</g>
+
+<!-- taunt -->
+<g opacity="0">
+<animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.25;0.27;0.4;0.42;1"/>
+<rect x="690" y="440" width="132" height="58" rx="18" fill="#f2f2f4"/>
+<polygon points="704,494 690,520 726,496" fill="#f2f2f4"/>
+<text x="756" y="482" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="40" fill="#2a145e">¡JA JA!</text>
+</g>
+
+<!-- impact -->
+<g opacity="0">
+<animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.465;0.47;0.53;0.58;1"/>
+<polygon points="590,520 612,556 656,540 630,578 668,604 622,604 628,650 596,616 566,650 568,604 524,604 560,578 534,540 576,556" fill="#ffd84d" stroke="#D3121B" stroke-width="4" filter="url(#pGlow)"/>
+<text x="602" y="508" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="78" letter-spacing="2" fill="#ffd84d" stroke="#121214" stroke-width="3" paint-order="stroke" transform="rotate(-8 602 508)">¡POW!</text>
+</g>
+
+<!-- sparkle as he flies off -->
+<g opacity="0">
+<animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="0;0;1;0;0" keyTimes="0;0.64;0.67;0.74;1"/>
+<polygon points="1190,40 1198,62 1220,70 1198,78 1190,100 1182,78 1160,70 1182,62" fill="#ffffff" filter="url(#pGlow)"/>
+</g>
+
+<!-- K.O. -->
+<g opacity="0">
+<animate attributeName="opacity" dur="6s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.6;0.63;0.92;0.97;1"/>
+<text x="860" y="300" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="190" letter-spacing="8" fill="url(#pChromeText)" stroke="#D3121B" stroke-width="4" paint-order="stroke">K.O.</text>
+<text class="ko-winner" x="860" y="352" text-anchor="middle" font-family="Teko, sans-serif" font-weight="600" font-size="36" letter-spacing="4" fill="#f2f2f4"></text>
+<text class="ko-loser" x="860" y="394" text-anchor="middle" font-family="Teko, sans-serif" font-weight="500" font-size="28" letter-spacing="3" fill="#ff5a5f"></text>
+</g>
+</svg>
+</div>
+<div class="ko-hint">Toca para cerrar</div>
+</template>
 </body>
 </html>
