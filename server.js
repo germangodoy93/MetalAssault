@@ -48,13 +48,20 @@ app.get('/api/events', (req, res) => {
 });
 
 /* ---------------- data API ---------------- */
-app.get('/api/health', (req, res) => res.json({ ok: true, storage: store.kind }));
+app.get('/api/health', (req, res) => res.json({
+  ok: true,
+  storage: store.kind,
+  persistent: store.kind === 'postgres' || !process.env.RAILWAY_ENVIRONMENT,
+  adminConfigured: players.adminConfigured,
+}));
 
 app.get('/api/state', async (req, res, next) => {
   try {
     const { version, state } = await store.getState();
     state.players = state.players.map((p) => publicPlayer(p.id, p)); // never send PIN hashes
-    res.set('Cache-Control', 'no-store').json(Object.assign({ version }, state));
+    // true when the data lives on the container's disk and the next deploy wipes it
+    const ephemeral = store.kind === 'file' && !!process.env.RAILWAY_ENVIRONMENT;
+    res.set('Cache-Control', 'no-store').json(Object.assign({ version, storage: store.kind, ephemeral }, state));
   } catch (e) { next(e); }
 });
 

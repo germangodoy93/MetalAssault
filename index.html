@@ -337,6 +337,7 @@
   .share-row .btn{ display:inline-flex; align-items:center; gap:6px; text-decoration:none; }
   .share-wa{ background:#25D366; border-color:#25D366; color:#0b2e17; }
   .share-wa:hover{ filter:brightness(1.06); border-color:#25D366; }
+  .danger-notice{ border-color:var(--danger); background:color-mix(in srgb, var(--danger) 12%, var(--surface)); }
   .post-highlight{ box-shadow:0 0 0 2px var(--gold), 0 0 24px color-mix(in srgb, var(--gold) 35%, transparent); }
   @media (max-width:480px){
     .post-gallery a{ width:calc(50% - 5px); height:auto; aspect-ratio:1/1; }
@@ -663,6 +664,9 @@
       <button class="btn small primary" id="btnImportLocal">Subir al servidor</button>
       <button class="btn small ghost" id="btnDismissLocal">Descartar</button>
     </span>
+  </div>
+  <div class="notice danger-notice admin-only" id="storageNotice" hidden role="alert">
+    <span><b>⚠ Los datos no se están guardando de forma permanente.</b> El servidor no tiene base de datos (falta <span class="mono">DATABASE_URL</span>), así que torneos, inscritos y publicaciones se borrarán en el próximo despliegue. Agrega Postgres en Railway.</span>
   </div>
   <div class="notice" id="offlineNotice" hidden>
     <span>Sin conexión con el servidor: los cambios se guardan solo en este navegador.</span>
@@ -1664,6 +1668,7 @@
     var next = { social: (src && src.social) || {} };
     COLS.forEach(function(c){ next[c] = (src && Array.isArray(src[c])) ? src[c] : []; });
     next.players = (src && Array.isArray(src.players)) ? src.players : [];
+    if(src && typeof src.ephemeral === 'boolean') document.getElementById('storageNotice').hidden = !src.ephemeral;
     state = next;
     rankCache = null;
     sortState();
