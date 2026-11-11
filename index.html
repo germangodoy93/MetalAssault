@@ -1245,6 +1245,14 @@
     });
   }
 
+  /* Crazyman unplugs Kraneo's controller: "SIN SEÑAL" — 10 s, closed
+     just before the scene's own fade to black. */
+  function showResetScene(tournamentName){
+    openScene('resetTpl', 'Llave reiniciada: ' + tournamentName, 9200, function(ov){
+      ov.querySelector('.reset-name').textContent = 'LLAVE REINICIADA · ' + clip(tournamentName, 26).toUpperCase();
+    });
+  }
+
   /* Remembers matches whose winner just changed (locally or by another
      user) so their card flashes once. */
   var booted = false;
@@ -1983,11 +1991,16 @@
     var tid = document.getElementById('sTorneo').value;
     if(!tid) return;
     if(!confirm('¿Reiniciar la llave? Se borran el sorteo y todos los resultados de este torneo.')) return;
+    var t = state.tournaments.find(function(x){ return x.id === tid; });
+    var hadDraw = state.matches.some(function(m){ return m.tournamentId === tid; });
     var ops = deleteOpsFor('matches', tid).concat(deleteOpsFor('teams', tid));
     ops.push({op:'merge', col:'tournaments', id:tid, data:{
       status:'abierto', groups:null, knockoutRounds:null, totalRounds:null, ligaJornadas:null, champDecided:null
     }});
-    if(await commit(ops)) toast('Sorteo reiniciado.');
+    // Crazyman pulls the plug on Kraneo while the bracket is wiped
+    if(hadDraw && t && !reduceMotion()) showResetScene(t.name);
+    if(await commit(ops)) afterScene(function(){ toast('Sorteo reiniciado.'); });
+    else closeScene(true);
   });
 
   function resultOps(t, res){
@@ -2947,7 +2960,7 @@
 <g opacity="0">
 <animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="discrete" values="0;1;0" keyTimes="0;0.62;0.93"/>
 <g>
-<animateTransform attributeName="transform" type="translate" dur="10s" repeatCount="indefinite" values="0 -80;0 -80;0 740" keyTimes="0;0.62;0.93"/>
+<animateTransform attributeName="transform" type="translate" dur="10s" repeatCount="indefinite" values="0 -80;0 -80;0 740;0 740" keyTimes="0;0.62;0.93;1"/>
 <rect x="160" y="0" width="12" height="20" fill="#d4a83a" transform="rotate(20 166 10)"/>
 <rect x="300" y="-60" width="12" height="20" fill="#D3121B" transform="rotate(-30 306 -50)"/>
 <rect x="450" y="-20" width="12" height="20" fill="#f2f2f4" transform="rotate(40 456 -10)"/>
@@ -2959,6 +2972,328 @@
 <rect x="840" y="-150" width="12" height="20" fill="#d4a83a" transform="rotate(-20 846 -140)"/>
 <rect x="680" y="-200" width="12" height="20" fill="#D3121B" transform="rotate(45 686 -190)"/>
 </g>
+</g>
+</svg>
+</div>
+<div class="ko-hint">Toca para saltar</div>
+</template>
+
+<!-- Reset scene, cloned by showResetScene() when the bracket is reset -->
+<template id="resetTpl">
+<div class="ko-stage">
+<svg viewBox="0 0 1280 720" aria-hidden="true">
+<defs>
+<linearGradient id="xGloss" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3c3c42"/><stop offset="45%" stop-color="#151517"/><stop offset="100%" stop-color="#050506"/></linearGradient>
+<linearGradient id="xChrome" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffffff"/><stop offset="45%" stop-color="#c3c6cc"/><stop offset="55%" stop-color="#6b6e75"/><stop offset="100%" stop-color="#e3e5e9"/></linearGradient>
+<linearGradient id="xIvory" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f3efe6"/><stop offset="100%" stop-color="#b9b2a3"/></linearGradient>
+<radialGradient id="xScreenC" cx="50%" cy="55%" r="45%"><stop offset="0%" stop-color="#46c8ff" stop-opacity="0.35"/><stop offset="100%" stop-color="#46c8ff" stop-opacity="0"/></radialGradient>
+<radialGradient id="xRage" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#D3121B" stop-opacity="0.55"/><stop offset="100%" stop-color="#D3121B" stop-opacity="0"/></radialGradient>
+<radialGradient id="xRoom" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#D3121B" stop-opacity="0.18"/><stop offset="100%" stop-color="#D3121B" stop-opacity="0"/></radialGradient>
+<filter id="xGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<clipPath id="xPoster"><rect x="96" y="116" width="158" height="158" rx="8"/></clipPath>
+
+<g id="xSkull">
+<path d="M300 44 C 360 44 392 86 392 138 C 392 166 382 184 370 196 C 366 206 360 212 352 216 L 248 216 C 240 212 234 206 230 196 C 218 184 208 166 208 138 C 208 86 240 44 300 44 Z" fill="url(#xGloss)" stroke="#D3121B" stroke-width="4"/>
+<path d="M222 150 C 214 110 236 66 282 54" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.14" stroke-linecap="round"/>
+<ellipse cx="334" cy="80" rx="26" ry="10" fill="#ffffff" opacity="0.2" transform="rotate(25 334 80)"/>
+<polyline points="318,50 310,72 320,88 314,104" fill="none" stroke="#D3121B" stroke-width="2.5" filter="url(#xGlow)"/>
+<path d="M234 128 C 220 110 212 88 216 62 C 228 86 244 100 258 112 Z" fill="url(#xIvory)" stroke="#000" stroke-width="1.5"/>
+<path d="M366 128 C 380 110 388 88 384 62 C 372 86 356 100 342 112 Z" fill="url(#xIvory)" stroke="#000" stroke-width="1.5"/>
+<path d="M244 144 C 262 136 284 142 296 154 C 298 170 290 184 272 184 C 254 184 242 170 244 144 Z" fill="#030304"/>
+<path d="M356 144 C 338 136 316 142 304 154 C 302 170 310 184 328 184 C 346 184 358 170 356 144 Z" fill="#030304"/>
+<path d="M238 136 C 258 132 282 138 298 152" fill="none" stroke="#45454b" stroke-width="3" stroke-linecap="round"/>
+<path d="M362 136 C 342 132 318 138 302 152" fill="none" stroke="#45454b" stroke-width="3" stroke-linecap="round"/>
+<ellipse cx="272" cy="164" rx="10" ry="6" fill="#FF2A2A" filter="url(#xGlow)" transform="rotate(14 272 164)"/>
+<ellipse cx="328" cy="164" rx="10" ry="6" fill="#FF2A2A" filter="url(#xGlow)" transform="rotate(-14 328 164)"/>
+<ellipse cx="273" cy="164" rx="3.5" ry="2" fill="#ffd6d6"/>
+<ellipse cx="327" cy="164" rx="3.5" ry="2" fill="#ffd6d6"/>
+<path d="M300 186 C 296 192 289 198 291 206 L 300 201 L 309 206 C 311 198 304 192 300 186 Z" fill="#030304"/>
+<path d="M230 190 C 242 198 256 198 266 194" fill="none" stroke="#4a4a50" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M370 190 C 358 198 344 198 334 194" fill="none" stroke="#4a4a50" stroke-width="2.5" stroke-linecap="round"/>
+<g fill="url(#xIvory)" stroke="#000" stroke-width="1">
+<rect x="261" y="208" width="9" height="16" rx="3"/><rect x="271" y="208" width="9" height="17" rx="3"/><rect x="281" y="208" width="9" height="18" rx="3"/><rect x="291" y="208" width="9" height="18" rx="3"/>
+<rect x="300" y="208" width="9" height="18" rx="3"/><rect x="310" y="208" width="9" height="18" rx="3"/><rect x="320" y="208" width="9" height="17" rx="3"/><rect x="330" y="208" width="9" height="16" rx="3"/>
+</g>
+<path d="M248 222 C 250 242 270 258 300 260 C 330 258 350 242 352 222 L 342 222 L 338 232 L 262 232 L 258 222 Z" fill="url(#xGloss)" stroke="#D3121B" stroke-width="3"/>
+<g fill="url(#xIvory)" stroke="#000" stroke-width="1">
+<rect x="264" y="222" width="9" height="13" rx="3"/><rect x="274" y="222" width="9" height="14" rx="3"/><rect x="284" y="222" width="9" height="14" rx="3"/><rect x="294" y="222" width="12" height="14" rx="3"/>
+<rect x="307" y="222" width="9" height="14" rx="3"/><rect x="317" y="222" width="9" height="14" rx="3"/><rect x="327" y="222" width="9" height="13" rx="3"/>
+</g>
+</g>
+
+<g id="xTorso">
+<g fill="url(#xGloss)" stroke="#D3121B" stroke-width="2">
+<rect x="290" y="258" width="20" height="10" rx="4"/><rect x="290" y="272" width="20" height="10" rx="4"/><rect x="288" y="384" width="24" height="12" rx="4"/>
+<rect x="287" y="400" width="26" height="13" rx="4"/><rect x="286" y="417" width="28" height="14" rx="4"/><rect x="285" y="435" width="30" height="14" rx="4"/>
+<rect x="284" y="453" width="32" height="15" rx="4"/><rect x="284" y="472" width="32" height="15" rx="4"/>
+</g>
+<path d="M300 498 C 270 486 234 490 228 520 C 226 544 250 558 272 554 L 300 566 L 328 554 C 350 558 374 544 372 520 C 366 490 330 486 300 498 Z" fill="url(#xGloss)" stroke="#D3121B" stroke-width="3"/>
+<ellipse cx="268" cy="534" rx="10" ry="13" fill="#050506"/>
+<ellipse cx="332" cy="534" rx="10" ry="13" fill="#050506"/>
+<circle cx="272" cy="556" r="11" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<circle cx="328" cy="556" r="11" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<rect x="224" y="494" width="152" height="16" rx="4" fill="#1f1f22" stroke="#D3121B" stroke-width="2"/>
+<rect x="278" y="487" width="44" height="30" rx="6" fill="url(#xChrome)" stroke="#000" stroke-width="2"/>
+<text x="300" y="510" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="22" fill="#111">MA</text>
+<g stroke-linecap="round" fill="none">
+<g stroke="#D3121B" stroke-width="13">
+<path d="M294 304 C 248 296 216 314 220 352"/><path d="M294 322 C 250 316 222 334 226 372"/><path d="M294 340 C 254 336 228 354 234 390"/><path d="M294 358 C 258 356 238 372 244 402"/><path d="M294 374 C 266 374 250 390 256 410"/>
+<path d="M306 304 C 352 296 384 314 380 352"/><path d="M306 322 C 350 316 378 334 374 372"/><path d="M306 340 C 346 336 372 354 366 390"/><path d="M306 358 C 342 356 362 372 356 402"/><path d="M306 374 C 334 374 350 390 344 410"/>
+</g>
+<g stroke="#1a1a1d" stroke-width="8">
+<path d="M294 304 C 248 296 216 314 220 352"/><path d="M294 322 C 250 316 222 334 226 372"/><path d="M294 340 C 254 336 228 354 234 390"/><path d="M294 358 C 258 356 238 372 244 402"/><path d="M294 374 C 266 374 250 390 256 410"/>
+<path d="M306 304 C 352 296 384 314 380 352"/><path d="M306 322 C 350 316 378 334 374 372"/><path d="M306 340 C 346 336 372 354 366 390"/><path d="M306 358 C 342 356 362 372 356 402"/><path d="M306 374 C 334 374 350 390 344 410"/>
+</g>
+</g>
+<rect x="291" y="290" width="18" height="94" rx="8" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<circle cx="300" cy="340" r="7" fill="#FF2A2A" filter="url(#xGlow)" opacity="0.9"/>
+<g stroke-linecap="round" fill="none">
+<path d="M296 292 C 266 282 234 282 206 292" stroke="#D3121B" stroke-width="13"/><path d="M304 292 C 334 282 366 282 394 292" stroke="#D3121B" stroke-width="13"/>
+<path d="M296 292 C 266 282 234 282 206 292" stroke="#1a1a1d" stroke-width="8"/><path d="M304 292 C 334 282 366 282 394 292" stroke="#1a1a1d" stroke-width="8"/>
+</g>
+</g>
+
+<g id="xPad">
+<path d="M214 278 C 176 270 146 294 148 334 L 196 324 L 222 296 Z" fill="url(#xGloss)" stroke="#D3121B" stroke-width="3"/>
+<polygon points="160,304 136,270 176,294" fill="url(#xChrome)" stroke="#000" stroke-width="1.5"/>
+<polygon points="184,288 178,250 202,284" fill="url(#xChrome)" stroke="#000" stroke-width="1.5"/>
+<polygon points="152,326 124,316 154,312" fill="url(#xChrome)" stroke="#000" stroke-width="1.5"/>
+<path d="M156 322 C 162 302 182 290 206 290" stroke="url(#xChrome)" stroke-width="3" fill="none"/>
+</g>
+
+<g id="xCtrl">
+<path d="M440 566 C 428 566 420 576 418 590 L 408 642 C 405 658 424 666 437 652 L 458 627 L 522 627 L 543 652 C 556 666 575 658 572 642 L 562 590 C 560 576 552 566 540 566 Z" fill="url(#xGloss)" stroke="#D3121B" stroke-width="3"/>
+<path d="M444 572 L536 572" stroke="url(#xChrome)" stroke-width="4" stroke-linecap="round"/>
+<rect x="440" y="588" width="24" height="8" rx="2" fill="#3a3a40"/>
+<rect x="448" y="580" width="8" height="24" rx="2" fill="#3a3a40"/>
+<circle cx="528" cy="582" r="5" fill="#3a3a40"/><circle cx="528" cy="602" r="5" fill="#3a3a40"/><circle cx="518" cy="592" r="5" fill="#3a3a40"/>
+<circle cx="538" cy="592" r="5" fill="#D3121B"/>
+<circle cx="472" cy="612" r="10" fill="#0b0b0c" stroke="#55555c" stroke-width="2"/>
+<circle cx="508" cy="612" r="10" fill="#0b0b0c" stroke="#55555c" stroke-width="2"/>
+</g>
+</defs>
+
+<!-- room -->
+<rect x="0" y="0" width="1280" height="668" fill="#17171a"/>
+<rect x="0" y="0" width="1280" height="668" fill="url(#xRoom)"/>
+<rect x="0" y="668" width="1280" height="52" fill="#0b0b0c"/>
+<line x1="0" y1="668" x2="1280" y2="668" stroke="#D3121B" stroke-width="2" opacity="0.6"/>
+<rect x="88" y="108" width="174" height="174" rx="12" fill="#0e0e10" stroke="#D3121B" stroke-width="2"/>
+<image href="logo.jpg" x="96" y="116" width="158" height="158" preserveAspectRatio="xMidYMid slice" clip-path="url(#xPoster)"/>
+
+<!-- rage aura -->
+<circle cx="640" cy="380" r="300" fill="url(#xRage)" opacity="0">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.42;0.46;0.92;1"/>
+</circle>
+
+<!-- gamer chair -->
+<rect x="532" y="250" width="216" height="290" rx="44" fill="#1a1a1d" stroke="#D3121B" stroke-width="3"/>
+<rect x="600" y="272" width="80" height="250" rx="22" fill="#232327"/>
+<line x1="560" y1="290" x2="560" y2="510" stroke="#D3121B" stroke-width="4" opacity="0.8"/>
+<line x1="720" y1="290" x2="720" y2="510" stroke="#D3121B" stroke-width="4" opacity="0.8"/>
+<rect x="498" y="440" width="28" height="92" rx="10" fill="#1f1f22" stroke="#34343a" stroke-width="2"/>
+<rect x="754" y="440" width="28" height="92" rx="10" fill="#1f1f22" stroke="#34343a" stroke-width="2"/>
+<rect x="516" y="514" width="248" height="38" rx="16" fill="#222226" stroke="#D3121B" stroke-width="3"/>
+<rect x="630" y="552" width="20" height="72" fill="#2a2a2e"/>
+<g stroke="#2a2a2e" stroke-width="10" stroke-linecap="round"><line x1="640" y1="624" x2="560" y2="652"/><line x1="640" y1="624" x2="720" y2="652"/><line x1="640" y1="624" x2="600" y2="660"/><line x1="640" y1="624" x2="680" y2="660"/></g>
+<g fill="#0b0b0c" stroke="#45454b" stroke-width="2"><circle cx="560" cy="658" r="9"/><circle cx="720" cy="658" r="9"/><circle cx="600" cy="662" r="9"/><circle cx="680" cy="662" r="9"/></g>
+
+<!-- console -->
+<rect x="860" y="622" width="110" height="46" rx="8" fill="#1f1f22" stroke="#45454b" stroke-width="2"/>
+<line x1="874" y1="640" x2="930" y2="640" stroke="#34343a" stroke-width="3"/>
+<circle cx="952" cy="636" r="6" fill="#b6ff3b" filter="url(#xGlow)">
+<animate attributeName="fill" dur="10s" repeatCount="indefinite" calcMode="discrete" values="#b6ff3b;#d3121b" keyTimes="0;0.37"/>
+</circle>
+<rect x="854" y="644" width="10" height="14" rx="2" fill="#0b0b0c" stroke="#45454b" stroke-width="1.5"/>
+
+<!-- cable plugged in -->
+<g>
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="discrete" values="1;0" keyTimes="0;0.37"/>
+<path d="M745 669 C 780 674 820 660 846 652" fill="none" stroke="#D3121B" stroke-width="4" stroke-linecap="round" filter="url(#xGlow)"/>
+<rect x="842" y="645" width="14" height="12" rx="2" fill="#2a2a2e" stroke="#D3121B" stroke-width="1.5"/>
+</g>
+<!-- cable loose -->
+<g opacity="0">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="discrete" values="0;1" keyTimes="0;0.37"/>
+<path d="M745 669 C 770 678 790 676 806 668" fill="none" stroke="#5a1a1d" stroke-width="4" stroke-linecap="round"/>
+</g>
+<!-- spark -->
+<polygon points="858,624 864,640 880,636 868,648 882,660 864,656 858,672 852,656 834,660 848,648 836,636 852,640" fill="#ffd84d" stroke="#D3121B" stroke-width="2" opacity="0" filter="url(#xGlow)">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;1;0;0" keyTimes="0;0.36;0.37;0.43;1"/>
+</polygon>
+
+<!-- KRANEO seated -->
+<g>
+<animateTransform attributeName="transform" type="translate" dur="10s" repeatCount="indefinite" values="0 0;0 0;4 0;-4 0;4 0;-4 0;0 0;0 0" keyTimes="0;0.44;0.47;0.5;0.53;0.56;0.6;1"/>
+<svg x="454" y="179" width="372" height="558" viewBox="0 0 600 900" overflow="visible">
+<g stroke-linecap="round" fill="none">
+<line x1="272" y1="556" x2="240" y2="604" stroke="#D3121B" stroke-width="22"/>
+<line x1="272" y1="556" x2="240" y2="604" stroke="#1a1a1d" stroke-width="16"/>
+<line x1="328" y1="556" x2="360" y2="604" stroke="#D3121B" stroke-width="22"/>
+<line x1="328" y1="556" x2="360" y2="604" stroke="#1a1a1d" stroke-width="16"/>
+<line x1="232" y1="624" x2="228" y2="752" stroke="#D3121B" stroke-width="15"/>
+<line x1="232" y1="624" x2="228" y2="752" stroke="#1a1a1d" stroke-width="10"/>
+<line x1="246" y1="626" x2="242" y2="748" stroke="#D3121B" stroke-width="9"/>
+<line x1="246" y1="626" x2="242" y2="748" stroke="#1a1a1d" stroke-width="5"/>
+<line x1="368" y1="624" x2="372" y2="752" stroke="#D3121B" stroke-width="15"/>
+<line x1="368" y1="624" x2="372" y2="752" stroke="#1a1a1d" stroke-width="10"/>
+<line x1="354" y1="626" x2="358" y2="748" stroke="#D3121B" stroke-width="9"/>
+<line x1="354" y1="626" x2="358" y2="748" stroke="#1a1a1d" stroke-width="5"/>
+</g>
+<circle cx="236" cy="612" r="17" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<circle cx="364" cy="612" r="17" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<path d="M212 754 L244 754 L256 778 L256 788 L190 788 L196 774 Z" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<path d="M388 754 L356 754 L344 778 L344 788 L410 788 L404 774 Z" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<path d="M300 540 C 300 610 420 640 470 790" fill="none" stroke="#D3121B" stroke-width="4" stroke-linecap="round"/>
+<use href="#xTorso"/>
+<g stroke-linecap="round" fill="none">
+<line x1="200" y1="300" x2="178" y2="418" stroke="#D3121B" stroke-width="18"/>
+<line x1="200" y1="300" x2="178" y2="418" stroke="#1a1a1d" stroke-width="12"/>
+<line x1="400" y1="300" x2="422" y2="418" stroke="#D3121B" stroke-width="18"/>
+<line x1="400" y1="300" x2="422" y2="418" stroke="#1a1a1d" stroke-width="12"/>
+</g>
+<circle cx="400" cy="298" r="14" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<use href="#xPad"/>
+<g stroke-linecap="round" fill="none">
+<line x1="180" y1="428" x2="232" y2="494" stroke="#D3121B" stroke-width="11"/>
+<line x1="180" y1="428" x2="232" y2="494" stroke="#1a1a1d" stroke-width="6"/>
+<line x1="192" y1="424" x2="242" y2="488" stroke="#D3121B" stroke-width="11"/>
+<line x1="192" y1="424" x2="242" y2="488" stroke="#1a1a1d" stroke-width="6"/>
+<line x1="420" y1="428" x2="368" y2="494" stroke="#D3121B" stroke-width="11"/>
+<line x1="420" y1="428" x2="368" y2="494" stroke="#1a1a1d" stroke-width="6"/>
+<line x1="408" y1="424" x2="358" y2="488" stroke="#D3121B" stroke-width="11"/>
+<line x1="408" y1="424" x2="358" y2="488" stroke="#1a1a1d" stroke-width="6"/>
+</g>
+<circle cx="178" cy="420" r="11" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<circle cx="422" cy="420" r="11" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<g transform="translate(-190 -120)"><use href="#xCtrl"/></g>
+<ellipse cx="238" cy="498" rx="16" ry="12" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<ellipse cx="362" cy="498" rx="16" ry="12" fill="url(#xGloss)" stroke="#D3121B" stroke-width="2.5"/>
+<g stroke-linecap="round" fill="none">
+<g stroke="#D3121B" stroke-width="9"><path d="M226 504 L222 524 L230 538"/><path d="M236 508 L236 530 L242 542"/><path d="M246 506 L252 526 L254 538"/><path d="M374 504 L378 524 L370 538"/><path d="M364 508 L364 530 L358 542"/><path d="M354 506 L348 526 L346 538"/><path d="M250 494 L268 488 L280 490"/><path d="M350 494 L332 488 L320 490"/></g>
+<g stroke="#1a1a1d" stroke-width="5"><path d="M226 504 L222 524 L230 538"/><path d="M236 508 L236 530 L242 542"/><path d="M246 506 L252 526 L254 538"/><path d="M374 504 L378 524 L370 538"/><path d="M364 508 L364 530 L358 542"/><path d="M354 506 L348 526 L346 538"/><path d="M250 494 L268 488 L280 490"/><path d="M350 494 L332 488 L320 490"/></g>
+</g>
+<g>
+<animateTransform attributeName="transform" type="rotate" dur="10s" repeatCount="indefinite" values="-4 300 262;4 300 262;-4 300 262;4 300 262;-4 300 262;4 300 262;-4 300 262;4 300 262;0 300 262;0 300 262;12 300 262;12 300 262;0 300 262" keyTimes="0;0.045;0.09;0.135;0.18;0.225;0.27;0.315;0.36;0.42;0.44;0.92;1"/>
+<use href="#xSkull"/>
+<g opacity="0">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;0.42;0.44;0.92;1"/>
+<ellipse cx="272" cy="164" rx="22" ry="12" fill="#FF2A2A" filter="url(#xGlow)" opacity="0.8" transform="rotate(14 272 164)"/>
+<ellipse cx="328" cy="164" rx="22" ry="12" fill="#FF2A2A" filter="url(#xGlow)" opacity="0.8" transform="rotate(-14 328 164)"/>
+</g>
+</g>
+</svg>
+</g>
+
+<!-- screen light (goes off when unplugged) -->
+<rect x="340" y="120" width="600" height="560" fill="url(#xScreenC)" opacity="0.5">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0.4;0.85;0.3;0.75;0.4;0.85;0.35;0;0" keyTimes="0;0.06;0.12;0.18;0.24;0.3;0.35;0.37;1"/>
+</rect>
+
+<!-- CRAZYMAN -->
+<g>
+<animateTransform attributeName="transform" type="translate" dur="10s" repeatCount="indefinite" values="420 0;420 0;0 0;0 0;0 26;0 26;0 0;0 0;600 0;600 0" keyTimes="0;0.08;0.28;0.3;0.34;0.38;0.42;0.55;0.72;1"/>
+<svg x="900" y="164" width="360" height="540" viewBox="0 0 600 900" overflow="visible">
+<ellipse cx="300" cy="845" rx="150" ry="14" fill="#000" opacity="0.45"/>
+<g>
+<animateTransform attributeName="transform" type="rotate" dur="10s" repeatCount="indefinite" values="0 300 840;0 300 840;-14 300 840;-14 300 840;0 300 840;0 300 840" keyTimes="0;0.3;0.34;0.38;0.42;1"/>
+<g>
+<animateTransform attributeName="transform" type="translate" dur="10s" repeatCount="indefinite" values="0 0;0 0;0 -14;0 0;0 -14;0 0;0 -14;0 0;0 0;6 -6;-6 0;6 -6;-6 0;0 0;0 -20;0 0;0 -20;0 0;0 0" keyTimes="0;0.08;0.11;0.14;0.18;0.22;0.25;0.28;0.42;0.44;0.46;0.48;0.5;0.55;0.6;0.64;0.68;0.72;1"/>
+<path d="M238 600 L294 600 L290 810 L236 810 Z" fill="#2b2b30" stroke="#121214" stroke-width="3"/>
+<path d="M306 600 L362 600 L368 810 L312 810 Z" fill="#2b2b30" stroke="#121214" stroke-width="3"/>
+<path d="M224 806 L292 806 L298 840 L210 840 Z" fill="#d3121b" stroke="#2a2a2e" stroke-width="3"/>
+<path d="M308 806 L376 806 L392 840 L302 840 Z" fill="#b6ff3b" stroke="#2a2a2e" stroke-width="3"/>
+<path d="M210 398 L390 398 L412 612 L188 612 Z" fill="#e9e6df" stroke="#2a2a2e" stroke-width="4"/>
+<rect x="196" y="468" width="208" height="16" fill="#8a8578" stroke="#2a2a2e" stroke-width="2"/>
+<rect x="192" y="544" width="216" height="16" fill="#8a8578" stroke="#2a2a2e" stroke-width="2"/>
+<rect x="292" y="462" width="18" height="28" rx="3" fill="#c9ccd2" stroke="#2a2a2e" stroke-width="2"/>
+<rect x="292" y="538" width="18" height="28" rx="3" fill="#c9ccd2" stroke="#2a2a2e" stroke-width="2"/>
+<g fill="#b6ff3b" opacity="0.85"><ellipse cx="240" cy="430" rx="14" ry="9"/><ellipse cx="352" cy="512" rx="12" ry="8"/></g>
+<text x="300" y="525" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="34" fill="#2a2a2e" transform="rotate(-6 300 525)">AFK NUNCA</text>
+<path d="M222 410 L172 360 L152 296" fill="none" stroke="#2a2a2e" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M222 410 L172 360 L152 296" fill="none" stroke="#e9e6df" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+<g>
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="discrete" values="1;0" keyTimes="0;0.37"/>
+<rect x="126" y="200" width="44" height="80" rx="7" fill="#b6ff3b" stroke="#2a2a2e" stroke-width="3"/>
+<rect x="126" y="226" width="44" height="22" fill="#2a2a2e"/>
+<rect x="132" y="194" width="32" height="8" rx="3" fill="#c9ccd2" stroke="#2a2a2e" stroke-width="2"/>
+</g>
+<g opacity="0">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" calcMode="discrete" values="0;1" keyTimes="0;0.37"/>
+<path d="M148 300 C 170 360 112 410 150 480" fill="none" stroke="#D3121B" stroke-width="7" stroke-linecap="round"/>
+<rect x="126" y="226" width="44" height="50" rx="7" fill="#1a1a1d" stroke="#D3121B" stroke-width="3"/>
+<rect x="134" y="200" width="8" height="28" rx="2" fill="url(#xChrome)"/>
+<rect x="154" y="200" width="8" height="28" rx="2" fill="url(#xChrome)"/>
+<polygon points="120,186 132,198 116,200" fill="#ffd84d"/>
+<polygon points="176,184 166,198 182,202" fill="#ffd84d"/>
+</g>
+<circle cx="148" cy="286" r="22" fill="#f1c7a0" stroke="#2a2a2e" stroke-width="3"/>
+<path d="M380 410 L436 476 L460 540" fill="none" stroke="#2a2a2e" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M380 410 L436 476 L460 540" fill="none" stroke="#e9e6df" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M410 560 C 402 556 396 562 395 572 L 388 606 C 386 618 400 624 409 614 L 424 598 L 492 598 L 507 614 C 516 624 530 618 528 606 L 521 572 C 520 562 514 556 506 560 Z" fill="#2a2a2e" stroke="#121214" stroke-width="3"/>
+<rect x="430" y="560" width="58" height="16" fill="#9a9aa0" transform="rotate(-8 459 568)"/>
+<circle cx="462" cy="548" r="22" fill="#f1c7a0" stroke="#2a2a2e" stroke-width="3"/>
+<rect x="278" y="364" width="44" height="42" fill="#e3b48c" stroke="#2a2a2e" stroke-width="3"/>
+<path d="M188 262 L162 176 L214 204 L206 118 L254 176 L270 88 L300 162 L332 84 L346 168 L394 108 L388 200 L440 168 L414 262 C 380 206 222 206 188 262 Z" fill="#ff7a1a" stroke="#2a2a2e" stroke-width="4" stroke-linejoin="round"/>
+<ellipse cx="300" cy="272" rx="112" ry="118" fill="#f1c7a0" stroke="#2a2a2e" stroke-width="4"/>
+<path d="M200 222 C 230 196 262 214 280 196 C 300 216 330 196 352 214 C 372 200 392 214 402 228 C 390 186 350 160 300 158 C 248 160 210 186 200 222 Z" fill="#ff7a1a" stroke="#2a2a2e" stroke-width="3" stroke-linejoin="round"/>
+<path d="M186 268 C 186 120 414 120 414 268" fill="none" stroke="#2a2a2e" stroke-width="12" stroke-linecap="round"/>
+<rect x="166" y="236" width="32" height="70" rx="12" fill="#2a2a2e"/>
+<rect x="402" y="236" width="32" height="70" rx="12" fill="#2a2a2e"/>
+<rect x="172" y="258" width="6" height="26" rx="3" fill="#b6ff3b"/>
+<g transform="rotate(-20 236 210)"><rect x="214" y="202" width="44" height="14" rx="6" fill="#e8c9a8" stroke="#2a2a2e" stroke-width="2"/></g>
+<path d="M222 222 L288 236" stroke="#2a2a2e" stroke-width="7" stroke-linecap="round"/>
+<path d="M330 252 L376 240" stroke="#2a2a2e" stroke-width="6" stroke-linecap="round"/>
+<circle cx="256" cy="268" r="32" fill="#ffffff" stroke="#2a2a2e" stroke-width="3"/>
+<g fill="none" stroke="#2a2a2e" stroke-width="3"><circle cx="256" cy="268" r="23"/><circle cx="256" cy="268" r="15"/><circle cx="256" cy="268" r="7"/></g>
+<circle cx="350" cy="272" r="17" fill="#ffffff" stroke="#2a2a2e" stroke-width="3"/>
+<circle cx="352" cy="273" r="3.5" fill="#111"/>
+<path d="M302 282 C 296 296 300 306 314 304" fill="none" stroke="#2a2a2e" stroke-width="3" stroke-linecap="round"/>
+<path d="M226 318 C 256 372 350 372 380 312 C 344 334 264 336 226 318 Z" fill="#3a1010" stroke="#2a2a2e" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M234 322 C 264 334 344 334 372 318 L 368 330 C 340 342 264 342 238 332 Z" fill="#f7f3ea" stroke="#2a2a2e" stroke-width="1.5"/>
+<line x1="300" y1="328" x2="300" y2="338" stroke="#3a1010" stroke-width="5"/>
+<ellipse cx="312" cy="352" rx="20" ry="8" fill="#e06a7a"/>
+</g>
+</g>
+</svg>
+</g>
+
+<!-- speed lines as he runs off -->
+<g stroke="#b6ff3b" stroke-width="4" stroke-linecap="round" opacity="0">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;0.8;0.8;0;0" keyTimes="0;0.55;0.57;0.66;0.7;1"/>
+<line x1="980" y1="400" x2="1080" y2="400"/>
+<line x1="960" y1="460" x2="1060" y2="460"/>
+<line x1="990" y1="520" x2="1090" y2="520"/>
+</g>
+
+<!-- ¡JAJAJA! -->
+<g opacity="0">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.4;0.42;0.6;0.62;1"/>
+<rect x="930" y="110" width="220" height="68" rx="20" fill="#b6ff3b" stroke="#2a2a2e" stroke-width="3"/>
+<polygon points="1010,174 1000,206 1036,176" fill="#b6ff3b" stroke="#2a2a2e" stroke-width="3"/>
+<rect x="1004" y="170" width="30" height="8" fill="#b6ff3b"/>
+<text x="1040" y="160" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="50" fill="#2a2a2e">¡JAJAJA!</text>
+</g>
+
+<!-- Kraneo's !! -->
+<g opacity="0">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.42;0.44;0.6;0.62;1"/>
+<text x="700" y="190" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="90" fill="#FF2A2A" filter="url(#xGlow)">!!</text>
+</g>
+
+<!-- Kraneo shouts -->
+<g opacity="0">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.62;0.64;0.91;0.93;1"/>
+<polygon points="300,150 520,130 500,190 540,226 470,214 300,236 330,196" fill="#f2f2f4" stroke="#D3121B" stroke-width="4"/>
+<text x="420" y="200" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="46" fill="#D3121B" transform="rotate(-4 420 200)">¡CRAZYMAAAN!</text>
+</g>
+
+<!-- NO SIGNAL + what happened -->
+<g opacity="0">
+<animate attributeName="opacity" dur="10s" repeatCount="indefinite" values="0;0;1;0.3;1;0.3;1;0;0" keyTimes="0;0.37;0.38;0.48;0.58;0.7;0.8;0.93;1"/>
+<rect x="420" y="34" width="440" height="102" rx="10" fill="#0b0b0c" stroke="#45454b" stroke-width="2"/>
+<text x="640" y="84" text-anchor="middle" font-family="Teko, sans-serif" font-weight="700" font-size="48" letter-spacing="6" fill="#f2f2f4">SIN SEÑAL</text>
+<text class="reset-name" x="640" y="120" text-anchor="middle" font-family="Teko, sans-serif" font-weight="600" font-size="26" letter-spacing="3" fill="#ff8a8f"></text>
 </g>
 </svg>
 </div>
