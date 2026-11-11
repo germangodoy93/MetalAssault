@@ -43,7 +43,11 @@ const sfx = {
 };
 
 let best=0; try{ best = +localStorage.getItem('kraneo_piedrazos_best') || 0; }catch(e){}
-function saveBest(){ if(S.score>best){ best=S.score; S.newBest=true; try{ localStorage.setItem('kraneo_piedrazos_best', best); }catch(e){} } }
+function saveBest(){
+  if(S.score>best){ best=S.score; S.newBest=true; try{ localStorage.setItem('kraneo_piedrazos_best', best); }catch(e){} }
+  // the page saves it in the ranking when the player is signed in
+  try{ window.dispatchEvent(new CustomEvent('kraneo:result', {detail:{score:S.score, level:S.level, levelWon: S.state==='win' ? S.level : null}})); }catch(e){}
+}
 
 /* ---------- Sprite pixelado de Glitchy (mira a la izquierda) ---------- */
 const GW=28, GH=20, gmap=[];

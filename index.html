@@ -193,6 +193,82 @@
   .formgrid{ display:grid; grid-template-columns:1.1fr .9fr; gap:18px; align-items:start; }
   @media (max-width:820px){ .formgrid{ grid-template-columns:1fr; } }
 
+  [hidden]{ display:none !important; }
+  .formgrid > *{ min-width:0; } /* wide tables scroll inside .table-wrap instead of stretching the column */
+
+  /* admin mode */
+  .adminbtn{
+    border:1px solid var(--line); background:var(--surface-2); color:var(--text-dim);
+    height:36px; padding:0 12px; border-radius:9px; cursor:pointer; font-size:12.5px; font-weight:600;
+    text-transform:uppercase; letter-spacing:.04em; white-space:nowrap;
+  }
+  .adminbtn:hover{ color:var(--text); border-color:var(--gold); }
+  @media (max-width:480px){ .adminbtn .lbl{ display:none; } .adminbtn{ padding:0; width:36px; } }
+  .adminbtn[aria-pressed="true"]{ color:#161616; background:var(--gold); border-color:var(--gold); }
+  body:not(.is-admin) .admin-only{ display:none !important; }
+  body:not(.is-admin) #panel-torneos .formgrid,
+  body:not(.is-admin) #panel-publicaciones .formgrid{ grid-template-columns:1fr; }
+  body:not(.is-admin) #bracketArea .slot[data-pick]{ pointer-events:none; cursor:default; }
+  body:not(.is-admin) #bracketArea .match-foot{ display:none; }
+  .ma-dialog{
+    border:1px solid var(--gold); border-radius:14px; background:var(--surface); color:var(--text);
+    padding:20px; width:min(400px, calc(100vw - 32px)); box-shadow:var(--shadow);
+  }
+  .ma-dialog::backdrop{ background:rgba(0,0,0,.6); }
+  .ma-dialog h3{ margin:0 0 6px; font-size:20px; text-transform:uppercase; }
+  .ma-dialog form{ display:flex; flex-direction:column; gap:10px; }
+  .ma-dialog p{ margin:0; }
+
+  /* registration */
+  .stack{ display:flex; flex-direction:column; gap:18px; min-width:0; }
+  .nickrow{ display:flex; gap:8px; }
+  .nickrow input{ flex:1; min-width:0; }
+  .nickrow .btn{ flex:none; }
+  .fieldhint{ margin:6px 0 0; font-size:12.5px; }
+  input.pin{ letter-spacing:.4em; font-size:18px; }
+  .form-msg{ margin:0; font-size:13.5px; color:var(--danger); min-height:0; }
+  .form-msg:empty{ display:none; }
+  .form-msg.ok{ color:var(--success); }
+  .profile-box{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 14px; border-radius:10px;
+    background:var(--surface-2); border:1px solid var(--line);
+  }
+  .profile-box .who{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .profile-box .who b{ font-size:17px; }
+  .codebox{
+    display:flex; flex-direction:column; gap:8px; padding:14px; border-radius:10px;
+    border:1px solid var(--gold); background:color-mix(in srgb, var(--gold) 10%, var(--surface));
+  }
+  .codebox p{ margin:0; }
+  .codebox .code{ font-size:26px; font-weight:700; letter-spacing:.12em; color:var(--gold); }
+  .badges{ display:inline-flex; gap:2px; flex-wrap:wrap; vertical-align:middle; }
+  .badge{ position:relative; display:inline-block; width:36px; height:36px; line-height:0; cursor:default; }
+  .badge img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+  .badge small{
+    position:absolute; right:-3px; bottom:-2px; line-height:1; padding:2px 4px; border-radius:999px;
+    font-size:10px; font-weight:700; font-family:'IBM Plex Mono',monospace; color:#fff; background:#D3121B;
+  }
+  @media (hover:hover){
+    .badge img{ transition:transform .15s ease; transform-origin:center; }
+    .badge:hover{ z-index:3; }
+    .badge:hover img{ transform:scale(2.4); }
+  }
+  .profile-box .badge{ width:44px; height:44px; }
+  .badge-showcase{ margin-top:14px; }
+  .badge-grid{ list-style:none; margin:10px 0 0; padding:0; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:14px; }
+  .badge-grid li{ display:flex; flex-direction:column; align-items:center; text-align:center; gap:2px; }
+  .badge-grid img{ width:96px; height:96px; object-fit:contain; margin-bottom:4px; filter:drop-shadow(0 2px 4px rgba(0,0,0,.35)); }
+  .badge-grid b{ font-size:14px; text-transform:uppercase; letter-spacing:.04em; }
+  .badge-grid span{ font-size:12.5px; color:var(--text-dim); }
+  .nick-tag{ display:block; font-size:11.5px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; }
+  .legend-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-top:14px; }
+  .legend{ margin:6px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px; font-size:13.5px; color:var(--text-dim); }
+  .legend b{ color:var(--gold); font-family:'IBM Plex Mono',monospace; }
+  .legend .badge{ margin-right:6px; }
+  .lvl{ display:inline-flex; gap:4px; }
+  .lvl span{ font-family:'IBM Plex Mono',monospace; font-size:12px; padding:2px 7px; border-radius:6px; border:1px solid var(--line); color:var(--text-faint); }
+  .lvl span.on{ color:var(--success); border-color:color-mix(in srgb, var(--success) 45%, var(--line)); }
+
   /* bracket */
   .bracket-wrap{ overflow-x:auto; padding-bottom:6px; }
   .bracket{ display:flex; gap:34px; min-width:max-content; padding:6px 2px 18px; }
@@ -360,7 +436,16 @@
   .kgame.kg-max:fullscreen{ width:100%; height:100%; }
   .kgame.kg-max .kg-canvas{ width:min(100%, calc((100dvh - 90px) * 16 / 9)); max-width:none; margin:0; flex:none; }
   .kgame.kg-max .kg-bar{ margin:0; }
-  .kgame.kg-max .kg-help{ display:none; }
+  .kgame.kg-max .kg-help, .kgame.kg-max .kg-player{ display:none; }
+  .kg-player{ max-width:720px; margin:12px auto 0; text-align:center; }
+  .kg-player-msg{ margin:0 0 8px; font-size:13.5px; color:var(--text-dim); }
+  .kg-player-msg b{ color:var(--text); }
+  .kg-login{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .kg-login input{ width:auto; flex:1 1 140px; max-width:220px; }
+  .kg-login input#kgPin{ flex:0 1 90px; letter-spacing:.3em; }
+  .kg-status{ margin-top:8px; min-height:1.2em; }
+  .kg-status.err{ color:var(--danger); }
+  .kg-status.ok{ color:var(--success); }
   @media (max-width:820px){ .kg-help{ display:none; } .kg-bar button{ padding:10px 14px 7px; font-size:19px; } }
   @media (max-width:520px){
     .k3d-stage{ height:min(68vh, 560px); }
@@ -527,6 +612,20 @@
 
 <div id="toast" class="toast"></div>
 
+<dialog class="ma-dialog" id="adminDialog" aria-labelledby="adminDialogTitle">
+  <form id="adminForm" method="dialog" novalidate>
+    <h3 id="adminDialogTitle">Modo administrador</h3>
+    <p class="muted">Crear y editar torneos, sortear, marcar resultados y publicar requiere la clave de administrador.</p>
+    <label for="adminKey">Clave de administrador</label>
+    <input id="adminKey" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" />
+    <p class="form-msg" id="adminMsg" role="alert"></p>
+    <div class="row" style="justify-content:flex-end;">
+      <button class="btn ghost" type="button" id="adminCancel">Cancelar</button>
+      <button class="btn primary" type="submit" id="adminSubmit">Entrar</button>
+    </div>
+  </form>
+</dialog>
+
 <header class="top">
   <div class="wrap">
     <div class="brandbar">
@@ -536,6 +635,7 @@
         <div class="tag">Torneos Clash Royale</div>
       </div>
       <div class="spacer"></div>
+      <button class="adminbtn" id="adminBtn" type="button" aria-pressed="false">🔒 Admin</button>
       <button class="themebtn" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
     </div>
     <nav class="tabs" id="tabs">
@@ -906,7 +1006,7 @@
         <div class="sechead"><h2>Torneos</h2><span class="sub" id="torneosCount"></span></div>
         <div class="grid" id="torneosGrid"></div>
       </div>
-      <form class="card" id="formTorneo">
+      <form class="card admin-only" id="formTorneo">
         <input type="hidden" id="tEditId" value="" />
         <h3 style="margin-bottom:2px;" id="tFormTitle">Crear torneo</h3>
         <p class="muted" style="margin:0 0 4px;" id="tFormHint">Define el tipo y las reglas antes de abrir inscripciones.</p>
@@ -955,10 +1055,6 @@
           <label for="tRules">Reglas del torneo</label>
           <textarea id="tRules" placeholder="Formato Mejor de 3, nivel de cartas topado a 11, mazo abierto, horario 8pm COT, walkover a los 10 min sin presentarse…"></textarea>
         </div>
-        <div>
-          <label for="tKey" id="tKeyLabel">Clave para eliminar el torneo</label>
-          <input id="tKey" type="password" autocomplete="new-password" placeholder="Elige una clave — la pedirá al momento de eliminar" required />
-        </div>
         <div class="row">
           <button class="btn primary" type="submit" id="tFormSubmit">Crear torneo</button>
           <button class="btn ghost" type="button" id="tFormCancel" hidden>Cancelar edición</button>
@@ -969,30 +1065,76 @@
 
   <!-- REGISTRO -->
   <section class="panel" id="panel-registro">
-    <div class="sechead"><h2>Registro de jugadores</h2><span class="sub">Inscríbete a un torneo abierto</span></div>
+    <div class="sechead"><h2>Registro de jugadores</h2><span class="sub">Te registras una sola vez; después solo necesitas tu nickname y tu PIN</span></div>
     <div class="formgrid">
-      <form class="card" id="formRegistro">
+      <div class="stack">
+      <form class="card" id="formRegistro" novalidate>
         <div>
           <label for="rTorneo">Torneo</label>
           <select id="rTorneo" class="tselect"></select>
         </div>
-        <div class="field-row">
-          <div>
-            <label for="rNombre">Nombre / Usuario</label>
-            <input id="rNombre" required placeholder="Ej. GermanCR" />
+        <div>
+          <label for="rNick">Tu nickname</label>
+          <div class="nickrow">
+            <input id="rNick" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="Ej. GermanCR" />
+            <button class="btn" type="button" id="rNickGo">Continuar</button>
           </div>
+          <p class="muted fieldhint" id="rNickHint">¿Primera vez? Escribe el nickname que quieres usar y te pediremos tus datos una sola vez.</p>
+        </div>
+        <div class="profile-box" id="regProfile" hidden></div>
+        <div class="field-row" id="regDataFields" hidden>
           <div>
             <label for="rTag">Tag de Clash Royale</label>
-            <input id="rTag" required placeholder="#ABC123XY" />
+            <input id="rTag" maxlength="14" autocapitalize="characters" spellcheck="false" placeholder="#ABC123XY" class="mono" />
+          </div>
+          <div>
+            <label for="rClan">Clan (opcional)</label>
+            <input id="rClan" maxlength="40" placeholder="Ej. Metal Assault CR" />
           </div>
         </div>
-        <div>
-          <label for="rClan">Clan (opcional)</label>
-          <input id="rClan" placeholder="Ej. Metal Assault CR" />
+        <div id="regCodeField" hidden>
+          <label for="rCode">Código de recuperación</label>
+          <input id="rCode" maxlength="9" autocapitalize="characters" spellcheck="false" autocomplete="off" placeholder="XXXX-XXXX" class="mono" />
+          <p class="muted fieldhint">Es el código que te mostramos al crear tu perfil. Si no lo tienes, pide al administrador que restablezca tu PIN.</p>
         </div>
-        <button class="btn primary" type="submit">Confirmar inscripción</button>
+        <div class="field-row" id="regPinFields" hidden>
+          <div>
+            <label for="rPin" id="rPinLabel">PIN (4 dígitos)</label>
+            <input id="rPin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password" class="mono pin" />
+          </div>
+          <div id="rPin2Wrap">
+            <label for="rPin2">Repite el PIN</label>
+            <input id="rPin2" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" class="mono pin" />
+          </div>
+        </div>
+        <p class="form-msg" id="regMsg" role="alert"></p>
+        <div class="row" id="regActions" hidden>
+          <button class="btn primary" type="submit" id="regSubmit">Inscribirme</button>
+          <button class="btn ghost small" type="button" id="regForgot">¿Olvidaste tu PIN?</button>
+          <button class="btn ghost small" type="button" id="regEditBtn">Editar mis datos</button>
+          <button class="btn ghost small" type="button" id="regBack">Volver</button>
+        </div>
+        <div class="codebox" id="regCodeBox" hidden>
+          <b>Guarda tu código de recuperación</b>
+          <div class="code mono" id="regCode"></div>
+          <p class="muted">Si olvidas tu PIN, con este código podrás crear uno nuevo. Solo se muestra esta vez: anótalo o hazle captura.</p>
+          <div class="row">
+            <button class="btn small" type="button" id="regCodeCopy">Copiar código</button>
+            <button class="btn small primary" type="button" id="regCodeOk">Ya lo guardé</button>
+          </div>
+        </div>
         <p class="muted" id="regHint"></p>
       </form>
+      <form class="card admin-only" id="formResetPin" novalidate>
+        <h3 style="margin-bottom:2px;">Restablecer PIN de un jugador</h3>
+        <p class="muted" style="margin:0;">Genera un PIN y un código de recuperación nuevos. Pásaselos al jugador por privado.</p>
+        <div class="nickrow">
+          <input id="resetNick" maxlength="20" autocapitalize="off" spellcheck="false" placeholder="Nickname del jugador" aria-label="Nickname del jugador" />
+          <button class="btn" type="submit">Restablecer</button>
+        </div>
+        <div class="codebox" id="resetOut" hidden></div>
+      </form>
+      </div>
       <div>
         <div class="between" style="margin-bottom:10px;">
           <h3 style="margin:0;" id="regListTitle">Inscritos</h3>
@@ -1015,21 +1157,53 @@
     </div>
     <div class="row" style="margin-bottom:16px;">
       <select id="sTorneo" class="tselect" style="max-width:360px;"></select>
-      <button class="btn primary" id="btnSorteo">🎲 Realizar sorteo aleatorio</button>
-      <button class="btn ghost danger" id="btnResetBracket">Reiniciar llave</button>
+      <button class="btn primary admin-only" id="btnSorteo">🎲 Realizar sorteo aleatorio</button>
+      <button class="btn ghost danger admin-only" id="btnResetBracket">Reiniciar llave</button>
     </div>
     <div id="sorteoInfo" class="muted" style="margin-bottom:6px;"></div>
-    <p class="help-line">Toca un jugador para marcarlo como ganador. ¿Te equivocaste? Toca al otro jugador para cambiar el ganador, o usa «Quitar resultado».</p>
+    <p class="help-line admin-only">Toca un jugador para marcarlo como ganador. ¿Te equivocaste? Toca al otro jugador para cambiar el ganador, o usa «Quitar resultado».</p>
     <div id="bracketArea"></div>
   </section>
 
   <!-- CLASIFICACION -->
   <section class="panel" id="panel-clasificacion">
-    <div class="sechead"><h2>Clasificación general</h2><span class="sub">Victorias acumuladas en todos los torneos</span></div>
+    <div class="sechead"><h2>Clasificación general</h2><span class="sub">Puntos acumulados en todos los torneos</span></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th style="width:50px;">#</th><th>Jugador</th><th>Tag</th><th class="num">Victorias</th><th class="num">Derrotas</th><th class="num">Torneos ganados</th></tr></thead>
+        <thead><tr><th style="width:50px;">#</th><th>Jugador</th><th>Insignias</th><th class="num">Puntos</th><th class="num">Torneos</th><th class="num">Victorias</th><th class="num">Derrotas</th><th class="num">Títulos</th></tr></thead>
         <tbody id="leaderTableBody"></tbody>
+      </table>
+    </div>
+    <div class="legend-grid">
+      <div class="card">
+        <h3>Cómo se ganan puntos</h3>
+        <ul class="legend">
+          <li><b>+10</b> por jugar un torneo</li>
+          <li><b>+5</b> por cada partida ganada</li>
+          <li><b>+10</b> por pasar a la eliminatoria</li>
+          <li><b>+50</b> campeón · <b>+35</b> subcampeón · <b>+20</b> tercer lugar (semifinalistas)</li>
+        </ul>
+        <p class="muted" style="margin:6px 0 0;">En torneos 2v2 los dos integrantes del equipo reciben los puntos.</p>
+      </div>
+    </div>
+    <div class="card badge-showcase">
+      <h3>Insignias</h3>
+      <p class="muted" style="margin:0 0 4px;">Se ganan jugando torneos y el juego de Kraneo. Los trofeos por torneos jugados se reemplazan al subir de nivel.</p>
+      <ul class="badge-grid">
+        <li><img src="badges/participante.png" alt="" width="96" height="96" loading="lazy" /><b>Participante</b><span>Jugar tu primer torneo</span></li>
+        <li><img src="badges/bronce.png" alt="" width="96" height="96" loading="lazy" /><b>Bronce</b><span>5 torneos</span></li>
+        <li><img src="badges/plata.png" alt="" width="96" height="96" loading="lazy" /><b>Plata</b><span>10 torneos</span></li>
+        <li><img src="badges/oro.png" alt="" width="96" height="96" loading="lazy" /><b>Oro</b><span>15 torneos</span></li>
+        <li><img src="badges/campeon.png" alt="" width="96" height="96" loading="lazy" /><b>Campeón</b><span>Ganar un torneo</span></li>
+        <li><img src="badges/kraneo.png" alt="" width="96" height="96" loading="lazy" /><b>Kraneo</b><span>Superar los 3 niveles del juego</span></li>
+      </ul>
+    </div>
+
+    <div class="sechead" style="margin-top:28px;"><h2>Ranking del juego Kraneo</h2><span class="sub">Mejor puntaje en «¡A piedrazo limpio!» · tabla aparte</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:50px;">#</th><th>Jugador</th><th class="num">Mejor puntaje</th><th>Niveles superados</th></tr></thead>
+        <tbody id="gameTableBody"></tbody>
       </table>
     </div>
   </section>
@@ -1041,7 +1215,7 @@
         <div class="sechead"><h2>Publicaciones</h2><span class="sub">Anuncios de la comunidad</span></div>
         <div style="display:flex; flex-direction:column; gap:12px;" id="postsList"></div>
       </div>
-      <form class="card" id="formPost">
+      <form class="card admin-only" id="formPost">
         <h3 style="margin-bottom:2px;">Nueva publicación</h3>
         <div>
           <label for="pTitulo">Título</label>
@@ -1091,6 +1265,20 @@
         <button type="button" data-kg="max" aria-pressed="false">⛶ Maximizar</button>
       </div>
       <p class="kg-help">Arrastra y suelta para lanzar · ◀ ▶ / A D caminar · ESPACIO saltar · mantén ↓ / S para agacharte · ESC menú</p>
+      <div class="kg-player" id="kgPlayer">
+        <div id="kgGuest">
+          <p class="kg-player-msg">Entra con tu nickname y PIN del registro para guardar tu puntaje en el ranking y ganar la insignia 💀 Kraneo.</p>
+          <form class="kg-login" id="kgLogin" novalidate>
+            <input id="kgNick" maxlength="20" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="Nickname" aria-label="Nickname" />
+            <input id="kgPin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password" placeholder="PIN" aria-label="PIN" class="mono" />
+            <button class="btn small" type="submit">Entrar</button>
+          </form>
+        </div>
+        <div id="kgUser" hidden>
+          <p class="kg-player-msg"><span id="kgUserText"></span> <button class="btn small ghost" type="button" id="kgLogout">Salir</button></p>
+        </div>
+        <p class="kg-player-msg kg-status" id="kgStatus" role="status"></p>
+      </div>
     </div>
     <div class="k3d" id="k3d" hidden>
       <div class="k3d-stage">
@@ -1123,6 +1311,7 @@
 </footer>
 
 <script src="bracket.js"></script>
+<script src="ranking.js"></script>
 <script src="kraneo3d.js"></script>
 <script src="kraneo-game.js"></script>
 <script>
@@ -1362,19 +1551,6 @@
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
     });
   }
-  /* Lightweight, deterministic obfuscation for the delete key — not
-     cryptographic, just avoids keeping the plain key sitting in the
-     stored document. Good enough for a friendly admin-only guard. */
-  function hashKey(s){
-    s = String(s || '').trim().toLowerCase();
-    var h = 5381;
-    for(var i = 0; i < s.length; i++){ h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; }
-    return 'k' + h.toString(36);
-  }
-  /* Master override: always works to delete any torneo, in case the
-     organizer forgets the one they set. Not shown per-tournament so it
-     doesn't leak in the stored doc — only lives here in the page code. */
-  var MASTER_DELETE_KEY = 'metalassault2026';
   function fmtDate(iso){
     if(!iso) return '';
     try{ var d = new Date(iso); return d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}); }catch(e){ return iso; }
@@ -1387,12 +1563,76 @@
      players see the same tournaments in real time. If the server cannot be
      reached the app keeps working offline with this browser's localStorage. */
   var B = window.MABracket;
+  var RK = window.MARanking;
   var COLS = ['tournaments','registrations','teams','matches','posts'];
-  var state = { tournaments:[], registrations:[], teams:[], matches:[], posts:[], social:{} };
+  var state = { tournaments:[], registrations:[], teams:[], matches:[], posts:[], players:[], social:{} };
   var online = false;
   var version = -1;
   var LS_KEY = 'ma_store_v1';
   var LS_IMPORTED = 'ma_store_v1_imported';
+
+  /* ---------- admin mode ----------
+     Managing tournaments (create, draw, results, posts) needs the admin
+     key; the server checks it on every write. It is kept for this browser
+     tab only (sessionStorage). Without a server (offline copy) everything
+     stays editable locally. */
+  var ADMIN_SS = 'ma_admin_key';
+  var adminKey = '';
+  try{ adminKey = sessionStorage.getItem(ADMIN_SS) || ''; }catch(e){}
+  function canManage(){ return !online || !!adminKey; }
+  function applyAdminUI(){
+    document.body.classList.toggle('is-admin', canManage());
+    var b = document.getElementById('adminBtn');
+    b.hidden = !online;
+    b.setAttribute('aria-pressed', adminKey ? 'true' : 'false');
+    b.innerHTML = adminKey ? '🔓<span class="lbl"> Admin · Salir</span>' : '🔒<span class="lbl"> Admin</span>';
+    b.title = adminKey ? 'Salir del modo administrador' : 'Entrar como administrador';
+    b.setAttribute('aria-label', b.title);
+  }
+  function setAdminKey(k){
+    adminKey = k || '';
+    try{ if(adminKey) sessionStorage.setItem(ADMIN_SS, adminKey); else sessionStorage.removeItem(ADMIN_SS); }catch(e){}
+    applyAdminUI();
+    if(booted){ renderTorneos(); renderRegistro(); }
+  }
+  function requireAdmin(){
+    if(canManage()) return true;
+    toast('Solo el administrador puede hacer esto. Usa el botón 🔒 Admin.');
+    return false;
+  }
+  /* JSON POST to the API. Resolves {ok, status, data}. */
+  function api(path, body, withAdmin){
+    var headers = {'Content-Type':'application/json'};
+    if(withAdmin && adminKey) headers['X-Admin-Key'] = adminKey;
+    return fetch(path, {method:'POST', headers:headers, body: JSON.stringify(body || {})})
+      .then(function(res){
+        return res.json().catch(function(){ return {}; }).then(function(data){ return {ok: res.ok, status: res.status, data: data}; });
+      })
+      .catch(function(){ return {ok:false, status:0, data:{error:'No hay conexión con el servidor.'}}; });
+  }
+  var adminDialog = document.getElementById('adminDialog');
+  document.getElementById('adminBtn').addEventListener('click', function(){
+    if(adminKey){ setAdminKey(''); toast('Saliste del modo administrador.'); return; }
+    document.getElementById('adminKey').value = '';
+    document.getElementById('adminMsg').textContent = '';
+    if(adminDialog.showModal) adminDialog.showModal(); else adminDialog.setAttribute('open', '');
+    document.getElementById('adminKey').focus();
+  });
+  document.getElementById('adminCancel').addEventListener('click', function(){ adminDialog.close(); });
+  document.getElementById('adminForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var key = document.getElementById('adminKey').value;
+    var msg = document.getElementById('adminMsg');
+    if(!key){ msg.textContent = 'Escribe la clave.'; return; }
+    var btn = document.getElementById('adminSubmit');
+    btn.disabled = true;
+    var r = await api('/api/admin/login', {key:key});
+    btn.disabled = false;
+    if(!r.ok){ msg.textContent = r.data.error || 'No se pudo comprobar la clave.'; document.getElementById('adminKey').select(); return; }
+    setAdminKey(key);
+    adminDialog.close();
+    toast('Modo administrador activo.');
+  });
 
   function nowIso(){ return new Date().toISOString(); }
   function stripId(o){ var c = Object.assign({}, o); delete c.id; return c; }
@@ -1418,12 +1658,15 @@
   function setState(src){
     var next = { social: (src && src.social) || {} };
     COLS.forEach(function(c){ next[c] = (src && Array.isArray(src[c])) ? src[c] : []; });
+    next.players = (src && Array.isArray(src.players)) ? src.players : [];
     state = next;
+    rankCache = null;
     sortState();
   }
 
   /* Applies operations to the in-memory state (optimistic update). */
   function applyOps(ops){
+    rankCache = null;
     ops.forEach(function(o){
       if(o.col === 'social'){
         if(o.op === 'delete') state.social = {};
@@ -1461,11 +1704,20 @@
     if(!online){ saveLocal(); return Promise.resolve(true); }
     inflight++;
     var p = writeQueue.then(function(){
+      var headers = {'Content-Type':'application/json'};
+      if(adminKey) headers['X-Admin-Key'] = adminKey;
       return fetch('/api/batch', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ops: ops})
-      }).then(function(res){ if(!res.ok) throw new Error('HTTP ' + res.status); return true; });
-    }).catch(function(){
-      toast('No se pudo guardar en el servidor. Revisa tu conexión e inténtalo de nuevo.');
+        method:'POST', headers:headers, body: JSON.stringify({ops: ops})
+      }).then(function(res){
+        if(res.status === 401){ var e = new Error('admin'); e.admin = true; throw e; }
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        return true;
+      });
+    }).catch(function(err){
+      if(err && err.admin){
+        setAdminKey('');
+        toast('Necesitas la clave de administrador para guardar este cambio.');
+      } else toast('No se pudo guardar en el servidor. Revisa tu conexión e inténtalo de nuevo.');
       refreshWanted = true;
       return false;
     }).then(function(ok){
@@ -1543,6 +1795,7 @@
   function renderAll(){
     renderInicio(); renderTorneos(); renderRegistroSelects(); renderRegistro();
     renderSorteoSelect(); renderSorteoInfo(); renderBracket(); renderLeaderboard(); renderPosts(); renderSocial();
+    if(typeof renderKgPlayer === 'function' && document.getElementById('kgUserText')) renderKgPlayer();
   }
 
   async function initStore(){
@@ -1553,6 +1806,7 @@
       online = true;
       version = j.version;
       setState(j);
+      applyAdminUI();
       renderAll();
       connectEvents();
       offerLocalImport();
@@ -1562,6 +1816,7 @@
       if(local && local.tournaments && local.tournaments.length) setState(local);
       else { seedExample(); saveLocal(); }
       document.getElementById('offlineNotice').hidden = false;
+      applyAdminUI();
       renderAll();
     }
     booted = true;
@@ -1589,6 +1844,7 @@
     document.getElementById('importNotice').hidden = true;
   }
   document.getElementById('btnImportLocal').addEventListener('click', async function(){
+    if(!requireAdmin()) return;
     var local = loadLocal();
     if(!local) return markImported();
     var ops = [];
@@ -1612,7 +1868,6 @@
   /* ================= DATA MUTATIONS ================= */
   function addTournament(t){ return commit([{op:'set', col:'tournaments', id:uid(), data:t}]); }
   function updateTournament(id, data){ return commit([{op:'merge', col:'tournaments', id:id, data:data}]); }
-  function addRegistration(r){ return commit([{op:'set', col:'registrations', id:uid(), data:r}]); }
   function removeRegistration(id){ return commit([{op:'delete', col:'registrations', id:id}]); }
   function deleteOpsFor(col, tournamentId){
     return state[col].filter(function(x){ return x.tournamentId === tournamentId; })
@@ -1632,7 +1887,8 @@
   function renderInicio(){
     countTo(document.getElementById('statTorneos'), state.tournaments.length);
     var players = {};
-    state.registrations.forEach(function(r){ players[r.tag] = true; });
+    state.players.forEach(function(p){ players[p.id] = true; });
+    state.registrations.forEach(function(r){ players[RK.regKey(r)] = true; });
     countTo(document.getElementById('statJugadores'), Object.keys(players).length);
     var jugadas = state.matches.filter(function(m){ return m.winnerId && m.playerAId && m.playerBId; }).length;
     countTo(document.getElementById('statPartidas'), jugadas);
@@ -1641,7 +1897,7 @@
 
     var box = document.getElementById('inicioAbiertos');
     if(!abiertos.length){
-      box.innerHTML = '<div class="empty" style="grid-column:1/-1;"><b>No hay torneos abiertos</b>Crea uno nuevo en la pestaña Torneos.</div>';
+      box.innerHTML = '<div class="empty" style="grid-column:1/-1;"><b>No hay torneos abiertos</b>Mientras tanto, crea tu perfil en Registro o juega con Kraneo.</div>';
       return;
     }
     box.innerHTML = abiertos.map(tournamentCard).join('');
@@ -1673,12 +1929,8 @@
   function renderTorneos(){
     document.getElementById('torneosCount').textContent = state.tournaments.length + ' registrados';
     var grid = document.getElementById('torneosGrid');
-    // keep a half-typed delete key when a live update re-renders the list
-    var typingKey = grid.querySelector('[data-delkey-input]');
-    var typedKeyValue = typingKey ? typingKey.value : '';
-    var typedKeyFocused = typingKey && document.activeElement === typingKey;
     if(!state.tournaments.length){
-      grid.innerHTML = '<div class="empty"><b>Aún no hay torneos</b>Usa el formulario para crear el primero.</div>';
+      grid.innerHTML = '<div class="empty"><b>Aún no hay torneos</b>' + (canManage() ? 'Usa el formulario para crear el primero.' : 'El administrador publicará los próximos torneos aquí.') + '</div>';
       return;
     }
     grid.innerHTML = state.tournaments.map(function(t){
@@ -1689,30 +1941,35 @@
         '<p class="muted">' + count + ' / ' + t.maxPlayers + ' inscritos' + (t.date ? ' · ' + fmtDate(t.date) : '') + '</p>' +
         (t.rules ? '<div class="rules-box">' + esc(t.rules) + '</div>' : '<p class="muted">Sin reglas específicas.</p>') +
         '<div class="row" style="margin-top:12px;">' +
-          '<button class="btn small" data-cycle="' + t.id + '">Cambiar estado</button>' +
-          '<button class="btn small ghost" data-goto-sorteo="' + t.id + '">Ir al sorteo</button>' +
-          '<button class="btn small ghost" data-edit="' + t.id + '">Editar</button>' +
-          (armedDeleteId !== t.id ? '<button class="btn small ghost danger" data-delete="' + t.id + '">Eliminar</button>' : '') +
+          '<button class="btn small admin-only" data-cycle="' + t.id + '">Cambiar estado</button>' +
+          '<button class="btn small ghost" data-goto-sorteo="' + t.id + '">Ver llave</button>' +
+          (t.status === 'abierto' ? '<button class="btn small ghost" data-goto-registro="' + t.id + '">Inscribirme</button>' : '') +
+          '<button class="btn small ghost admin-only" data-edit="' + t.id + '">Editar</button>' +
+          (armedDeleteId !== t.id ? '<button class="btn small ghost danger admin-only" data-delete="' + t.id + '">Eliminar</button>' : '') +
         '</div>' +
         (armedDeleteId === t.id ?
-          '<div style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);">' +
+          '<div class="admin-only" style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);">' +
+            '<p class="muted" style="margin:0 0 8px;">Se borran el torneo, sus inscritos, el sorteo y los resultados. No se puede deshacer.</p>' +
             '<div class="row">' +
-              '<input type="text" class="mono" data-delkey-input="' + t.id + '" placeholder="Clave del torneo" style="max-width:170px;" autocomplete="off" autocapitalize="off" spellcheck="false" />' +
               '<button class="btn small danger" data-confirm-delete="' + t.id + '" style="background:var(--danger); border-color:var(--danger); color:#fff;">Eliminar definitivamente</button>' +
               '<button class="btn small ghost" data-cancel-delete="1">Cancelar</button>' +
             '</div>' +
-            '<p class="muted" style="margin:6px 0 0; font-size:11.5px;">¿Olvidaste la clave? Usa la clave maestra: <span class="mono">' + esc(MASTER_DELETE_KEY) + '</span></p>' +
           '</div>'
           : '') +
       '</div>';
     }).join('');
 
-    var restoredKey = grid.querySelector('[data-delkey-input]');
-    if(restoredKey && typedKeyValue){ restoredKey.value = typedKeyValue; }
-    if(restoredKey && typedKeyFocused){ restoredKey.focus(); }
-
+    grid.querySelectorAll('[data-goto-registro]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        showTab('registro');
+        document.getElementById('rTorneo').value = btn.dataset.gotoRegistro;
+        renderRegistro();
+        document.getElementById('rNick').focus();
+      });
+    });
     grid.querySelectorAll('[data-cycle]').forEach(function(btn){
       btn.addEventListener('click', function(){
+        if(!requireAdmin()) return;
         var t = state.tournaments.find(function(t){ return t.id === btn.dataset.cycle; });
         if(!t) return;
         var order = ['abierto','en curso','finalizado'];
@@ -1733,24 +1990,19 @@
     });
     grid.querySelectorAll('[data-delete]').forEach(function(btn){
       btn.addEventListener('click', function(){
+        if(!requireAdmin()) return;
         armedDeleteId = btn.dataset.delete;
         renderTorneos();
-        var input = grid.querySelector('[data-delkey-input="' + armedDeleteId + '"]');
-        if(input) input.focus();
+        var confirmBtn = grid.querySelector('[data-confirm-delete="' + armedDeleteId + '"]');
+        if(confirmBtn) confirmBtn.focus();
         clearTimeout(armDeleteTimer);
         armDeleteTimer = setTimeout(function(){ armedDeleteId = null; renderTorneos(); }, 30000);
       });
     });
     function attemptDelete(id){
+      if(!requireAdmin()) return;
       var t = state.tournaments.find(function(t){ return t.id === id; });
       if(!t) return;
-      var input = grid.querySelector('[data-delkey-input="' + id + '"]');
-      var typed = input ? input.value : '';
-      var isMaster = typed.trim().toLowerCase() === MASTER_DELETE_KEY;
-      if(t.deleteKey && !isMaster){
-        if(!typed){ toast('Escribe la clave del torneo (o la clave maestra) para eliminarlo.'); if(input) input.focus(); return; }
-        if(hashKey(typed) !== t.deleteKey){ toast('Clave incorrecta. Prueba con la clave maestra si la olvidaste.'); if(input){ input.value=''; input.focus(); } return; }
-      }
       clearTimeout(armDeleteTimer);
       armedDeleteId = null;
       deleteTournamentCascade(id).then(function(){
@@ -1760,11 +2012,6 @@
     }
     grid.querySelectorAll('[data-confirm-delete]').forEach(function(btn){
       btn.addEventListener('click', function(){ attemptDelete(btn.dataset.confirmDelete); });
-    });
-    grid.querySelectorAll('[data-delkey-input]').forEach(function(input){
-      input.addEventListener('keydown', function(e){
-        if(e.key === 'Enter'){ e.preventDefault(); attemptDelete(input.dataset.delkeyInput); }
-      });
     });
     grid.querySelectorAll('[data-cancel-delete]').forEach(function(btn){
       btn.addEventListener('click', function(){
@@ -1788,10 +2035,6 @@
     document.getElementById('tMax').value = t.maxPlayers || 8;
     document.getElementById('tDate').value = t.date || '';
     document.getElementById('tRules').value = t.rules || '';
-    document.getElementById('tKey').value = '';
-    document.getElementById('tKey').required = false;
-    document.getElementById('tKey').placeholder = t.deleteKey ? 'Dejar vacío para mantener la clave actual' : 'Este torneo no tiene clave — crea una si quieres';
-    document.getElementById('tKeyLabel').textContent = 'Nueva clave para eliminar (opcional)';
     document.getElementById('tFormTitle').textContent = 'Editar torneo';
     document.getElementById('tFormHint').textContent = 'Modificando "' + t.name + '". Los cambios no afectan un sorteo ya realizado.';
     document.getElementById('tFormSubmit').textContent = 'Guardar cambios';
@@ -1804,9 +2047,6 @@
     form.reset();
     document.getElementById('tEditId').value = '';
     document.getElementById('tMax').value = 8;
-    document.getElementById('tKey').required = true;
-    document.getElementById('tKey').placeholder = 'Elige una clave — la pedirá al momento de eliminar';
-    document.getElementById('tKeyLabel').textContent = 'Clave para eliminar el torneo';
     document.getElementById('tFormTitle').textContent = 'Crear torneo';
     document.getElementById('tFormHint').textContent = 'Define el tipo y las reglas antes de abrir inscripciones.';
     document.getElementById('tFormSubmit').textContent = 'Crear torneo';
@@ -1831,10 +2071,10 @@
 
   document.getElementById('formTorneo').addEventListener('submit', function(e){
     e.preventDefault();
+    if(!requireAdmin()) return;
     var name = document.getElementById('tName').value.trim();
     if(!name) return;
     var editId = document.getElementById('tEditId').value;
-    var keyTyped = document.getElementById('tKey').value;
     var payload = {
       name: name,
       type: document.getElementById('tType').value,
@@ -1845,12 +2085,9 @@
       rules: document.getElementById('tRules').value.trim()
     };
     if(editId){
-      if(keyTyped) payload.deleteKey = hashKey(keyTyped);
       updateTournament(editId, payload);
       toast('Torneo actualizado: ' + name);
     } else {
-      if(!keyTyped){ toast('Define una clave para poder eliminar este torneo más adelante.'); document.getElementById('tKey').focus(); return; }
-      payload.deleteKey = hashKey(keyTyped);
       payload.qualifiers = 2;
       payload.status = 'abierto';
       payload.createdAt = new Date().toISOString();
@@ -1880,6 +2117,30 @@
     tournamentOptions(document.getElementById('pTorneo'), true);
   }
 
+  /* ---------- ranking cache (points + badges per player) ---------- */
+  var rankCache = null;
+  function ranking(){
+    if(!rankCache){
+      var rows = RK.compute(state), byKey = {};
+      rows.forEach(function(r){ byKey[r.id] = r; });
+      rankCache = {rows: rows, byKey: byKey};
+    }
+    return rankCache;
+  }
+  function badgeImg(src, label, count){
+    return '<span class="badge" title="' + esc(label) + '"><img src="' + esc(src) + '" alt="' + esc(label) + '" width="36" height="36" loading="lazy" decoding="async" />' +
+      (count > 1 ? '<small>×' + count + '</small>' : '') + '</span>';
+  }
+  function badgesHtml(list){
+    if(!list || !list.length) return '';
+    return '<span class="badges">' + list.map(function(b){ return badgeImg(b.img, b.label, b.count); }).join('') + '</span>';
+  }
+  function badgesOfKey(key){ var r = ranking().byKey[key]; return r ? r.badges : []; }
+  function findPlayer(nick){
+    var id = String(nick || '').trim().toLowerCase();
+    return state.players.find(function(p){ return p.id === id; }) || null;
+  }
+
   function renderRegistro(){
     var tid = document.getElementById('rTorneo').value;
     var t = state.tournaments.find(function(t){ return t.id === tid; });
@@ -1888,7 +2149,9 @@
     document.getElementById('regListTitle').textContent = t ? 'Inscritos — ' + t.name : 'Inscritos';
     if(t){
       hint.textContent = list.length + ' / ' + t.maxPlayers + ' cupos usados' + (t.status !== 'abierto' ? ' · Inscripciones cerradas (' + statusText(t.status) + ')' : '');
-    } else { hint.textContent = 'Crea un torneo primero en la pestaña Torneos.'; }
+    } else { hint.textContent = 'Todavía no hay torneos. Puedes crear tu perfil ahora y te inscribes cuando abran uno.'; }
+    if(reg.player) reg.player = findPlayer(reg.player.id) || reg.player; // live updates (badges, clan)
+    renderRegForm();
 
     var body = document.getElementById('regTableBody');
     if(!list.length){
@@ -1896,40 +2159,189 @@
       return;
     }
     body.innerHTML = list.map(function(r, i){
-      return '<tr><td class="mono">' + (i+1) + '</td><td>' + esc(r.name) + '</td><td class="mono">' + esc(r.tag) + '</td><td class="muted">' + esc(r.clan || '—') + '</td>' +
-        '<td><button class="btn small ghost danger" data-remove="' + r.id + '">Quitar</button></td></tr>';
+      return '<tr><td class="mono">' + (i+1) + '</td><td>' + esc(r.name) + ' ' + badgesHtml(badgesOfKey(RK.regKey(r))) + '</td><td class="mono">' + esc(r.tag) + '</td><td class="muted">' + esc(r.clan || '—') + '</td>' +
+        '<td><button class="btn small ghost danger admin-only" data-remove="' + r.id + '">Quitar</button></td></tr>';
     }).join('');
     body.querySelectorAll('[data-remove]').forEach(function(btn){
-      btn.addEventListener('click', function(){ removeRegistration(btn.dataset.remove); });
+      btn.addEventListener('click', function(){
+        if(!requireAdmin()) return;
+        var r = state.registrations.find(function(x){ return x.id === btn.dataset.remove; });
+        if(r && !confirm('¿Quitar a ' + r.name + ' de este torneo?')) return;
+        removeRegistration(btn.dataset.remove);
+      });
     });
   }
 
-  document.getElementById('rTorneo').addEventListener('change', renderRegistro);
+  /* ---------- registration form: nickname first, data only the first time ----------
+     modes: start (only the nickname) · login (profile with PIN: sign up with PIN)
+            claim (old profile without PIN: create it) · new (first time: tag, clan, PIN)
+            recover (recovery code -> new PIN) · edit (change tag / clan) */
+  var reg = { mode: 'start', player: null };
+  var NICK_RE = /^[A-Za-z0-9_.-]{3,20}$/;
+  function $(id){ return document.getElementById(id); }
+  function selectedTournament(){
+    var tid = $('rTorneo').value;
+    return state.tournaments.find(function(t){ return t.id === tid; }) || null;
+  }
+  function regOpen(){ var t = selectedTournament(); return !!(t && t.status === 'abierto'); }
+  function regMsg(text, ok){ var m = $('regMsg'); m.textContent = text || ''; m.classList.toggle('ok', !!ok); }
 
-  document.getElementById('formRegistro').addEventListener('submit', async function(e){
+  function renderRegForm(){
+    var m = reg.mode, p = reg.player, open = regOpen();
+    function show(id, on){ $(id).hidden = !on; }
+    show('regProfile', !!p && m !== 'start' && m !== 'new');
+    show('regDataFields', m === 'new' || m === 'edit');
+    show('regCodeField', m === 'recover');
+    show('regPinFields', m !== 'start');
+    show('rPin2Wrap', m === 'new' || m === 'claim' || m === 'recover');
+    show('regActions', m !== 'start');
+    show('regForgot', m === 'login');
+    show('regEditBtn', m === 'login');
+    show('regBack', m === 'recover' || m === 'edit');
+    show('rNickHint', m === 'start');
+    $('rPinLabel').textContent = {login:'Tu PIN', claim:'Crea tu PIN (4 dígitos)', 'new':'Crea un PIN (4 dígitos)', recover:'Nuevo PIN', edit:'Tu PIN actual'}[m] || 'PIN';
+    $('rPin').autocomplete = (m === 'login' || m === 'edit') ? 'current-password' : 'new-password';
+    var submit = $('regSubmit');
+    submit.textContent = {
+      login: 'Inscribirme', claim: open ? 'Crear PIN e inscribirme' : 'Crear PIN',
+      'new': open ? 'Crear perfil e inscribirme' : 'Crear perfil', recover: 'Cambiar PIN', edit: 'Guardar cambios'
+    }[m] || 'Continuar';
+    submit.disabled = m === 'login' && !open;
+    submit.title = submit.disabled ? 'Elige un torneo con inscripciones abiertas' : '';
+    if(p && !$('regProfile').hidden){
+      var note = m === 'claim' ? 'Este perfil viene de torneos anteriores y aún no tiene PIN. Créalo para protegerlo.'
+        : m === 'login' ? (open ? 'Escribe tu PIN para inscribirte.' : 'Este torneo no acepta inscripciones: elige uno abierto.')
+        : m === 'recover' ? 'Escribe tu código de recuperación y elige un PIN nuevo.'
+        : 'Cambia tu tag o tu clan y confirma con tu PIN.';
+      $('regProfile').innerHTML = '<div class="who"><b>¡Hola, ' + esc(p.nickname) + '! ' + badgesHtml(badgesOfKey(p.id)) + '</b>' +
+        '<span class="muted mono">' + esc(p.tag || 'Sin tag') + (p.clan ? ' · ' + esc(p.clan) : '') + '</span>' +
+        '<span class="muted">' + note + '</span></div>';
+    }
+  }
+  function setRegMode(mode, player){
+    reg.mode = mode;
+    if(player !== undefined) reg.player = player;
+    ['rPin','rPin2','rCode'].forEach(function(id){ $(id).value = ''; });
+    if(mode === 'new'){ $('rTag').value = ''; $('rClan').value = ''; }
+    if(mode === 'edit' && reg.player){ $('rTag').value = reg.player.tag || ''; $('rClan').value = reg.player.clan || ''; }
+    regMsg('');
+    renderRegForm();
+    var focus = {login:'rPin', claim:'rPin', 'new':'rTag', recover:'rCode', edit:'rTag'}[mode];
+    if(focus) $(focus).focus();
+  }
+  function lookupNick(){
+    var nick = $('rNick').value.trim();
+    if(!NICK_RE.test(nick)){ regMsg('El nickname debe tener de 3 a 20 caracteres: letras, números, punto, guion o guion bajo (sin espacios).'); $('rNick').focus(); return; }
+    if(!online){ regMsg('Sin conexión con el servidor: el registro necesita internet.'); return; }
+    var p = findPlayer(nick);
+    if(p) setRegMode(p.hasPin ? 'login' : 'claim', p);
+    else setRegMode('new', null);
+  }
+  function showRecoveryCode(code){
+    $('regCode').textContent = code;
+    $('regCodeBox').hidden = false;
+    $('regCodeBox').scrollIntoView({block:'nearest', behavior:'smooth'});
+  }
+  function pinPair(){
+    var a = $('rPin').value.trim(), b = $('rPin2').value.trim();
+    if(!/^\d{4}$/.test(a)){ regMsg('El PIN debe tener exactamente 4 números.'); $('rPin').focus(); return null; }
+    if(!$('rPin2Wrap').hidden && a !== b){ regMsg('Los dos PIN no coinciden.'); $('rPin2').focus(); return null; }
+    return a;
+  }
+  /* Signs the player up to the selected tournament (when it's open). */
+  async function signUp(nick, pin){
+    var t = selectedTournament();
+    if(!t || t.status !== 'abierto') return true;
+    var r = await api('/api/register', {tournamentId: t.id, nickname: nick, pin: pin});
+    if(!r.ok){ regMsg(r.data.error || 'No se pudo completar la inscripción.'); return false; }
+    return true;
+  }
+
+  $('rTorneo').addEventListener('change', renderRegistro);
+  $('rNickGo').addEventListener('click', lookupNick);
+  $('rNick').addEventListener('input', function(){ if(reg.mode !== 'start') setRegMode('start', null); regMsg(''); });
+  $('regForgot').addEventListener('click', function(){ setRegMode('recover'); });
+  $('regEditBtn').addEventListener('click', function(){ setRegMode('edit'); });
+  $('regBack').addEventListener('click', function(){ setRegMode(reg.player && reg.player.hasPin ? 'login' : 'start'); });
+  $('regCodeOk').addEventListener('click', function(){ $('regCodeBox').hidden = true; });
+  $('regCodeCopy').addEventListener('click', function(){
+    var code = $('regCode').textContent;
+    if(navigator.clipboard) navigator.clipboard.writeText(code).then(function(){ toast('Código copiado.'); }, function(){ toast('No se pudo copiar: anótalo.'); });
+  });
+
+  $('formRegistro').addEventListener('submit', async function(e){
     e.preventDefault();
-    var tid = document.getElementById('rTorneo').value;
-    var t = state.tournaments.find(function(t){ return t.id === tid; });
-    if(!t){ toast('Selecciona un torneo.'); return; }
-    if(t.status !== 'abierto'){ toast('Este torneo no acepta inscripciones.'); return; }
-    var existing = state.registrations.filter(function(r){ return r.tournamentId === tid; });
-    if(existing.length >= t.maxPlayers){ toast('Cupos llenos para este torneo.'); return; }
-    var tag = document.getElementById('rTag').value.trim();
-    if(existing.some(function(r){ return r.tag.toLowerCase() === tag.toLowerCase(); })){
-      toast('Ese tag ya está inscrito en este torneo.'); return;
+    if(reg.mode === 'start'){ lookupNick(); return; }
+    var nick = $('rNick').value.trim(), m = reg.mode, t = selectedTournament(), open = regOpen();
+    var pin = pinPair();
+    if(!pin) return;
+    var submit = $('regSubmit');
+    submit.disabled = true;
+    regMsg('');
+    try{
+      if(m === 'login'){
+        if(!open){ regMsg('Este torneo no acepta inscripciones.'); return; }
+        if(await signUp(nick, pin)){
+          regMsg('¡Listo, ' + reg.player.nickname + '! Quedaste inscrito en ' + t.name + '.', true);
+          toast('¡Inscripción confirmada!');
+          $('rPin').value = '';
+        }
+      } else if(m === 'new'){
+        var r = await api('/api/players', {nickname: nick, tag: $('rTag').value, clan: $('rClan').value, pin: pin});
+        if(!r.ok){ regMsg(r.data.error || 'No se pudo crear el perfil.'); return; }
+        reg.player = r.data.player;
+        showRecoveryCode(r.data.recoveryCode);
+        var signed = await signUp(nick, pin);
+        reg.mode = 'login';
+        $('rPin').value = ''; $('rPin2').value = '';
+        renderRegForm();
+        if(signed) regMsg('¡Perfil creado' + (open ? ' e inscripción confirmada en ' + t.name : '') + '! La próxima vez solo necesitas tu nickname y tu PIN.', true);
+      } else if(m === 'claim'){
+        var c = await api('/api/players/claim', {nickname: nick, pin: pin});
+        if(!c.ok){ regMsg(c.data.error || 'No se pudo crear el PIN.'); return; }
+        reg.player = c.data.player;
+        showRecoveryCode(c.data.recoveryCode);
+        var ok = await signUp(nick, pin);
+        reg.mode = 'login';
+        $('rPin').value = ''; $('rPin2').value = '';
+        renderRegForm();
+        if(ok) regMsg('PIN creado' + (open ? ' e inscripción confirmada en ' + t.name : '') + '.', true);
+      } else if(m === 'recover'){
+        var rc = await api('/api/players/recover', {nickname: nick, code: $('rCode').value, newPin: pin});
+        if(!rc.ok){ regMsg(rc.data.error || 'No se pudo cambiar el PIN.'); return; }
+        setRegMode('login');
+        showRecoveryCode(rc.data.recoveryCode);
+        regMsg('PIN cambiado. Tu código de recuperación anterior ya no sirve: guarda el nuevo.', true);
+      } else if(m === 'edit'){
+        var u = await api('/api/players/update', {nickname: nick, pin: pin, tag: $('rTag').value, clan: $('rClan').value});
+        if(!u.ok){ regMsg(u.data.error || 'No se pudieron guardar los cambios.'); return; }
+        reg.player = u.data.player;
+        setRegMode('login');
+        regMsg('Datos actualizados. Se usarán en tus próximas inscripciones.', true);
+      }
+      scheduleRefresh();
+    } finally {
+      submit.disabled = reg.mode === 'login' && !regOpen();
     }
-    var ok = await addRegistration({
-      tournamentId: tid,
-      name: document.getElementById('rNombre').value.trim(),
-      tag: tag,
-      clan: document.getElementById('rClan').value.trim(),
-      createdAt: new Date().toISOString()
-    });
-    if(ok){
-      e.target.reset();
-      document.getElementById('rTorneo').value = tid;
-      toast('¡Inscripción confirmada!');
-    }
+  });
+
+  $('formResetPin').addEventListener('submit', async function(e){
+    e.preventDefault();
+    if(!requireAdmin()) return;
+    var nick = $('resetNick').value.trim();
+    var out = $('resetOut');
+    if(!nick){ $('resetNick').focus(); return; }
+    var p = findPlayer(nick);
+    if(p && !confirm('¿Restablecer el PIN de ' + p.nickname + '? El PIN y el código actuales dejarán de servir.')) return;
+    var r = await api('/api/admin/reset-pin', {nickname: nick}, true);
+    if(r.status === 401){ setAdminKey(''); toast('Necesitas la clave de administrador.'); return; }
+    out.hidden = false;
+    if(!r.ok){ out.innerHTML = '<p class="form-msg">' + esc(r.data.error || 'No se pudo restablecer.') + '</p>'; return; }
+    out.innerHTML = '<b>Datos nuevos de ' + esc(r.data.nickname) + '</b>' +
+      '<p>PIN: <span class="code mono">' + esc(r.data.pin) + '</span></p>' +
+      '<p>Código de recuperación: <span class="mono">' + esc(r.data.recoveryCode) + '</span></p>' +
+      '<p class="muted">Envíaselos por privado. Puede cambiar el PIN con «¿Olvidaste tu PIN?» usando el código.</p>';
+    $('resetNick').value = '';
   });
 
   /* ================= RENDER: SORTEO & BRACKET ================= */
@@ -1993,6 +2405,7 @@
   }
 
   document.getElementById('btnSorteo').addEventListener('click', async function(){
+    if(!requireAdmin()) return;
     var tid = document.getElementById('sTorneo').value;
     var t = state.tournaments.find(function(t){ return t.id === tid; });
     if(!t){ toast('Selecciona un torneo primero.'); return; }
@@ -2035,6 +2448,7 @@
   });
 
   document.getElementById('btnResetBracket').addEventListener('click', async function(){
+    if(!requireAdmin()) return;
     var tid = document.getElementById('sTorneo').value;
     if(!tid) return;
     if(!confirm('¿Reiniciar la llave? Se borran el sorteo y todos los resultados de este torneo.')) return;
@@ -2059,6 +2473,7 @@
 
   /* side 'A' / 'B' = mark (or change) the winner; null = remove the result. */
   function onMatchAction(matchId, side){
+    if(!requireAdmin()) return;
     var m = state.matches.find(function(x){ return x.id === matchId; });
     if(!m) return;
     var t = state.tournaments.find(function(x){ return x.id === m.tournamentId; });
@@ -2119,7 +2534,7 @@
     }
     var st = B.structure(t, ms);
     // groups finished but knockout missing (e.g. data from the previous version)
-    if(st.groups.length && !ms.some(B.isKoMatch) && !repairScheduled[tid]){
+    if(st.groups.length && !ms.some(B.isKoMatch) && !repairScheduled[tid] && canManage()){
       var fix = B.syncKnockout(t, state.matches, nowIso());
       if(fix){
         repairScheduled[tid] = true;
@@ -2229,41 +2644,35 @@
 
   /* ================= RENDER: CLASIFICACION ================= */
   function renderLeaderboard(){
-    var stats = {};
-    function ensure(id, name){
-      if(!stats[id]) stats[id] = {id:id, name:name, wins:0, losses:0, titles:0};
-      return stats[id];
-    }
-    state.matches.forEach(function(m){
-      if(!m.winnerId || !m.playerAId || !m.playerBId) return; // skip byes and pending
-      var winnerIsA = m.winnerId === m.playerAId;
-      ensure(m.playerAId, m.playerAName).wins += winnerIsA ? 1 : 0;
-      ensure(m.playerAId, m.playerAName).losses += winnerIsA ? 0 : 1;
-      ensure(m.playerBId, m.playerBName).wins += winnerIsA ? 0 : 1;
-      ensure(m.playerBId, m.playerBName).losses += winnerIsA ? 1 : 0;
-    });
-    state.tournaments.forEach(function(t){
-      var c = B.champion(t, state.matches);
-      if(c) ensure(c.id, c.name).titles += 1;
-    });
-    var rows = Object.values(stats).sort(function(a,b){
-      if(b.wins !== a.wins) return b.wins - a.wins;
-      if(b.titles !== a.titles) return b.titles - a.titles;
-      return a.losses - b.losses;
-    });
+    var rows = ranking().rows.filter(function(r){ return r.tournaments > 0; });
     var body = document.getElementById('leaderTableBody');
     if(!rows.length){
-      body.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center; padding:26px;">Todavía no hay partidas jugadas. Realiza un sorteo y define ganadores.</td></tr>';
+      body.innerHTML = '<tr><td colspan="8" class="muted" style="text-align:center; padding:26px;">Todavía no hay torneos jugados. Los puntos aparecen cuando se hace el sorteo y se marcan ganadores.</td></tr>';
+    } else {
+      body.innerHTML = rows.map(function(row, i){
+        return '<tr><td><span class="rank">' + (i+1) + '</span></td>' +
+          '<td>' + esc(row.nickname) + (row.tag ? '<span class="nick-tag">' + esc(row.tag) + '</span>' : '') + '</td>' +
+          '<td>' + (badgesHtml(row.badges) || '<span class="muted">—</span>') + '</td>' +
+          '<td class="num mono"><b>' + row.points + '</b></td><td class="num mono">' + row.tournaments + '</td>' +
+          '<td class="num mono">' + row.wins + '</td><td class="num mono">' + row.losses + '</td><td class="num mono">' + row.titles + '</td></tr>';
+      }).join('');
+    }
+
+    var games = RK.gameTable(state);
+    var gbody = document.getElementById('gameTableBody');
+    if(!games.length){
+      gbody.innerHTML = '<tr><td colspan="4" class="muted" style="text-align:center; padding:26px;">Nadie ha guardado un puntaje todavía. Juega en la pestaña Kraneo entrando con tu nickname.</td></tr>';
       return;
     }
-    var tagOf = {};
-    state.registrations.forEach(function(r){ tagOf[r.id] = r.tag; });
-    body.innerHTML = rows.map(function(row, i){
-      var isTeam = String(row.id).indexOf('team-') === 0;
-      var displayName = isTeam ? row.name : String(row.name || '').replace(/\s#\S+$/, '');
-      var tagCell = isTeam ? '👥 Equipo' : esc(tagOf[row.id] || '');
-      return '<tr><td><span class="rank">' + (i+1) + '</span></td><td>' + esc(displayName) + '</td><td class="mono muted">' + tagCell + '</td>' +
-        '<td class="num mono">' + row.wins + '</td><td class="num mono">' + row.losses + '</td><td class="num mono">' + row.titles + '</td></tr>';
+    gbody.innerHTML = games.map(function(p, i){
+      var lv = p.gameLevels || [];
+      var levels = '<span class="lvl">' + [1,2,3].map(function(n){
+        return '<span class="' + (lv.indexOf(n) >= 0 ? 'on' : '') + '" title="Nivel ' + n + (lv.indexOf(n) >= 0 ? ' superado' : ' pendiente') + '">N' + n + '</span>';
+      }).join('') + '</span>';
+      var done = [1,2,3].every(function(n){ return lv.indexOf(n) >= 0; });
+      return '<tr><td><span class="rank">' + (i+1) + '</span></td><td>' + esc(p.nickname) +
+        (done ? ' <span class="badges">' + badgeImg(RK.badgeImg('kraneo'), 'Kraneo · superó los 3 niveles del juego') + '</span>' : '') + '</td>' +
+        '<td class="num mono"><b>' + (p.gameBest || 0) + '</b></td><td>' + levels + '</td></tr>';
     }).join('');
   }
 
@@ -2321,7 +2730,7 @@
 
   async function uploadImage(file){
     var blob = await downscaleImage(file);
-    var res = await fetch('/api/images', { method:'POST', headers:{'Content-Type': blob.type || file.type}, body: blob });
+    var res = await fetch('/api/images', { method:'POST', headers:{'Content-Type': blob.type || file.type, 'X-Admin-Key': adminKey}, body: blob });
     if(!res.ok) throw new Error('HTTP ' + res.status);
     var j = await res.json();
     return {id: j.id, url: j.url};
@@ -2338,6 +2747,7 @@
 
   document.getElementById('formPost').addEventListener('submit', async function(e){
     e.preventDefault();
+    if(!requireAdmin()) return;
     var title = document.getElementById('pTitulo').value.trim();
     var body = document.getElementById('pCuerpo').value.trim();
     if(!title || !body) return;
@@ -2393,6 +2803,70 @@
         '<span class="ic" aria-hidden="true">' + s.ic + '</span><span><b>' + esc(s.label) + '</b><span>' + esc(s.handle) + '</span></span></a>';
     }).join('');
   }
+
+  /* ---------- Kraneo game: save scores with the player's nickname ----------
+     Signing in (nickname + PIN) gives a session token kept in this browser;
+     every finished run is sent to the server, which keeps the best score and
+     the levels beaten (all 3 = Kraneo badge). */
+  var GAME_LS = 'ma_game_session';
+  var gameSession = null, lastGameResult = null;
+  try{ gameSession = JSON.parse(localStorage.getItem(GAME_LS) || 'null'); }catch(e){}
+  function kgStatus(text, kind){
+    var el = $('kgStatus');
+    el.textContent = text || '';
+    el.className = 'kg-player-msg kg-status' + (kind ? ' ' + kind : '');
+  }
+  function renderKgPlayer(){
+    var on = !!(gameSession && gameSession.token);
+    $('kgGuest').hidden = on;
+    $('kgUser').hidden = !on;
+    if(on){
+      var p = findPlayer(gameSession.nickname);
+      var best = p ? (p.gameBest || 0) : 0;
+      var lv = p ? (p.gameLevels || []) : [];
+      $('kgUserText').innerHTML = 'Jugando como <b>' + esc(p ? p.nickname : gameSession.nickname) + '</b> · récord en el ranking: <b>' + best + '</b> · niveles superados: ' + lv.length + '/3' +
+        (lv.length === 3 ? ' 💀' : '');
+    }
+  }
+  function setGameSession(s){
+    gameSession = s;
+    try{ if(s) localStorage.setItem(GAME_LS, JSON.stringify(s)); else localStorage.removeItem(GAME_LS); }catch(e){}
+    renderKgPlayer();
+  }
+  async function sendGameResult(res){
+    if(!gameSession || !online) return;
+    var r = await api('/api/game/score', {token: gameSession.token, score: res.score, levelWon: res.levelWon});
+    if(r.status === 401){ setGameSession(null); kgStatus(r.data.error || 'Vuelve a entrar para guardar tus puntajes.', 'err'); return; }
+    if(!r.ok){ kgStatus(r.data.error || 'No se pudo guardar el puntaje.', 'err'); return; }
+    lastGameResult = null;
+    var won = res.levelWon ? '¡Nivel ' + res.levelWon + ' superado! ' : '';
+    kgStatus(won + (r.data.version ? 'Guardado en el ranking: ' + res.score + ' puntos.' : res.score + ' puntos (tu récord sigue siendo mayor).'), 'ok');
+    if(r.data.player && r.data.player.gameLevels && r.data.player.gameLevels.length === 3 && res.levelWon === 3) toast('💀 ¡Ganaste la insignia Kraneo!');
+    scheduleRefresh();
+  }
+  window.addEventListener('kraneo:result', function(e){
+    var res = e.detail || {};
+    lastGameResult = res;
+    if(gameSession) sendGameResult(res);
+    else kgStatus(res.score + ' puntos. Entra con tu nickname y PIN para guardarlo en el ranking.', '');
+  });
+  $('kgLogin').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var nick = $('kgNick').value.trim(), pin = $('kgPin').value.trim();
+    if(!nick || !/^\d{4}$/.test(pin)){ kgStatus('Escribe tu nickname y tu PIN de 4 números. ¿No tienes perfil? Créalo en la pestaña Registro.', 'err'); return; }
+    if(!online){ kgStatus('Sin conexión con el servidor.', 'err'); return; }
+    var r = await api('/api/players/login', {nickname: nick, pin: pin});
+    if(!r.ok){
+      kgStatus(r.status === 404 ? 'No existe ese nickname. Crea tu perfil en la pestaña Registro.' : (r.data.error || 'No se pudo entrar.'), 'err');
+      return;
+    }
+    $('kgPin').value = '';
+    setGameSession({token: r.data.token, nickname: r.data.player.nickname});
+    kgStatus('¡Listo! Tus puntajes se guardarán en el ranking.', 'ok');
+    if(lastGameResult) sendGameResult(lastGameResult);
+  });
+  $('kgLogout').addEventListener('click', function(){ setGameSession(null); kgStatus(''); });
+  renderKgPlayer();
 
   /* ---------- restore last tab ---------- */
   try{

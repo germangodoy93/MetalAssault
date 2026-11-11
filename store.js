@@ -14,7 +14,9 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const COLLECTIONS = new Set(['tournaments', 'registrations', 'teams', 'matches', 'posts', 'social']);
+const COLLECTIONS = new Set(['tournaments', 'registrations', 'teams', 'matches', 'posts', 'social', 'players']);
+// Player profiles hold PIN hashes: only the server's own endpoints write them.
+const BATCH_COLLECTIONS = new Set(['tournaments', 'registrations', 'teams', 'matches', 'posts', 'social']);
 const ID_RE = /^[A-Za-z0-9_.:-]{1,200}$/;
 const IMAGE_ID_RE = /^[0-9a-f-]{36}$/;
 const MAX_OPS = 1000;
@@ -31,7 +33,7 @@ function validateOps(ops) {
     if (!isPlainObject(o)) throw badRequest(`op ${i}: formato inválido`);
     const { op, col, id } = o;
     if (!['set', 'merge', 'delete'].includes(op)) throw badRequest(`op ${i}: operación desconocida`);
-    if (!COLLECTIONS.has(col)) throw badRequest(`op ${i}: colección desconocida`);
+    if (!BATCH_COLLECTIONS.has(col)) throw badRequest(`op ${i}: colección desconocida`);
     if (typeof id !== 'string' || !ID_RE.test(id)) throw badRequest(`op ${i}: id inválido`);
     if (op === 'delete') return { op, col, id };
     if (!isPlainObject(o.data)) throw badRequest(`op ${i}: data debe ser un objeto`);
