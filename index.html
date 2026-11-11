@@ -2703,9 +2703,12 @@
         }).join('') + '</div>';
       }
       var wa = 'https://wa.me/?text=' + encodeURIComponent(shareText(p));
+      var reg = registerTarget(p);
+      var regBtn = reg ? '<button class="btn small primary" type="button" data-register-post="' + esc(p.id) + '" title="Ir al registro de ' + esc(reg.name) + '">📝 Inscribirme</button>' : '';
       return '<div class="card post' + (p.id === highlightPostId ? ' post-highlight' : '') + '" id="post-' + esc(p.id) + '"><div class="meta">' + fmtDate(p.createdAt) + (t ? ' · ' + esc(t.name) : ' · General') + '</div>' +
         '<h3 style="margin:0;">' + esc(p.title) + '</h3><p>' + esc(p.body) + '</p>' + gallery +
-        (online ? '<div class="share-row" aria-label="Compartir publicación">' +
+        (!online && regBtn ? '<div class="share-row">' + regBtn + '</div>' : '') +
+        (online ? '<div class="share-row" aria-label="Inscripción y compartir">' + regBtn +
           '<a class="btn small share-wa" href="' + esc(wa) + '" target="_blank" rel="noopener noreferrer">' + WA_ICON + 'WhatsApp</a>' +
           (navigator.share ? '<button class="btn small ghost" type="button" data-share-post="' + esc(p.id) + '">↗ Compartir</button>' : '') +
           '<button class="btn small ghost" type="button" data-copy-post="' + esc(p.id) + '">🔗 Copiar enlace</button>' +
@@ -2719,10 +2722,33 @@
      preview card WhatsApp shows (title, text, image) and opens the post here. */
   var WA_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91A9.85 9.85 0 0 0 12.04 2zm0 18.15h-.01a8.23 8.23 0 0 1-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.23 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.43-.06-.13-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28z"/></svg>';
   function postUrl(p){ return location.origin + '/p/' + encodeURIComponent(p.id); }
+  /* Tournament a post invites to: its own one while registration is open;
+     for general posts, the first open tournament. null = no sign-up button. */
+  function registerTarget(p){
+    var open = function(t){ return t && t.status === 'abierto'; };
+    if(p.tournamentId){
+      var t = state.tournaments.find(function(x){ return x.id === p.tournamentId; });
+      return open(t) ? t : null;
+    }
+    return state.tournaments.filter(open).sort(function(a, b){ return (a.date || '9').localeCompare(b.date || '9'); })[0] || null;
+  }
+  function registerUrl(t){ return location.origin + '/?inscribir=' + encodeURIComponent(t.id); }
   function shareText(p){
     var body = String(p.body || '').replace(/\s+/g, ' ').trim();
     if(body.length > 220) body = body.slice(0, 219).trim() + '…';
-    return '*' + String(p.title || '').trim() + '*\n\n' + (body ? body + '\n\n' : '') + '👉 ' + postUrl(p);
+    var t = registerTarget(p);
+    return '*' + String(p.title || '').trim() + '*\n\n' + (body ? body + '\n\n' : '') + '👉 ' + postUrl(p) +
+      (t ? '\n\n📝 Inscríbete en ' + t.name + ': ' + registerUrl(t) : '');
+  }
+  /* Opens Registro with that tournament selected, ready to type the nickname. */
+  function goRegister(tid){
+    showTab('registro');
+    var sel = document.getElementById('rTorneo');
+    if(tid && Array.prototype.some.call(sel.options, function(o){ return o.value === tid; })) sel.value = tid;
+    renderRegistro();
+    var form = document.getElementById('formRegistro');
+    form.scrollIntoView({behavior: reduceMotion() ? 'auto' : 'smooth', block: 'start'});
+    setTimeout(function(){ document.getElementById('rNick').focus({preventScroll: true}); }, 250);
   }
   function copyText(text){
     if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
@@ -2736,6 +2762,13 @@
     });
   }
   document.getElementById('postsList').addEventListener('click', function(e){
+    var regBtn = e.target.closest('[data-register-post]');
+    if(regBtn){
+      var rp = state.posts.find(function(x){ return x.id === regBtn.dataset.registerPost; });
+      var rt = rp && registerTarget(rp);
+      if(rt) goRegister(rt.id); else toast('Este torneo ya no acepta inscripciones.');
+      return;
+    }
     var share = e.target.closest('[data-share-post]'), copy = e.target.closest('[data-copy-post]');
     var id = share ? share.dataset.sharePost : copy ? copy.dataset.copyPost : null;
     var p = id && state.posts.find(function(x){ return x.id === id; });
@@ -2752,7 +2785,20 @@
   var highlightPostId = null;
   var sharedPostId = null;
   try{ sharedPostId = new URLSearchParams(location.search).get('post'); }catch(e){}
+  /* Sign-up link from a shared message (/?inscribir=<tournament id>). */
+  var sharedRegisterId = null;
+  try{ sharedRegisterId = new URLSearchParams(location.search).get('inscribir'); }catch(e){}
+  function openSharedRegister(){
+    if(sharedRegisterId === null) return;
+    var tid = sharedRegisterId;
+    sharedRegisterId = null;
+    try{ history.replaceState(null, '', location.pathname); }catch(e){}
+    var t = state.tournaments.find(function(x){ return x.id === tid; });
+    goRegister(t ? t.id : '');
+    if(t && t.status !== 'abierto') toast('Las inscripciones de ' + t.name + ' ya cerraron.');
+  }
   function openSharedPost(){
+    openSharedRegister();
     if(!sharedPostId) return;
     var id = sharedPostId;
     sharedPostId = null;
