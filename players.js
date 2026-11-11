@@ -44,7 +44,7 @@ function normCode(c) { return String(c || '').toUpperCase().replace(/[^A-Z0-9]/g
 function newPin() { return String(crypto.randomInt(0, 10000)).padStart(4, '0'); }
 
 /* ---------------- input rules ---------------- */
-function httpError(status, msg) { const e = new Error(msg); e.status = status; return e; }
+function httpError(status, msg) { const e = new Error(msg); e.status = status; e.expose = true; return e; }
 function nickId(nick) { return String(nick || '').trim().toLowerCase(); }
 function cleanNick(nick) {
   const n = String(nick || '').trim();

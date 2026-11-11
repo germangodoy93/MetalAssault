@@ -118,6 +118,54 @@ app.get('/api/images/:id', async (req, res, next) => {
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'No encontrado' }));
 
+/* ---------------- shared post links ----------------
+   /p/<id> is the link people share. WhatsApp, Facebook, etc. read the
+   Open Graph tags to draw the preview card (title, text, image); browsers
+   are sent straight on to the post inside the app. */
+const POST_ID_RE = /^[A-Za-z0-9_.:-]{1,200}$/;
+function attr(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function excerpt(s, max) {
+  const t = String(s || '').replace(/\s+/g, ' ').trim();
+  return t.length > max ? t.slice(0, max - 1).trimEnd() + '…' : t;
+}
+app.get('/p/:id', async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    if (!POST_ID_RE.test(id)) return res.redirect(302, '/');
+    const { state } = await store.getState();
+    const post = state.posts.find((p) => p.id === id);
+    if (!post) return res.redirect(302, '/');
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const target = `/?post=${encodeURIComponent(id)}`;
+    const img = (post.images || []).map((i) => i && i.url).find((u) => typeof u === 'string' && u.startsWith('/api/images/'));
+    const title = excerpt(post.title, 90) || 'Metal Assault';
+    const desc = excerpt(post.body, 200) || 'Torneos de Clash Royale de la comunidad Metal Assault.';
+    res.set({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' });
+    res.send(`<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${attr(title)} · Metal Assault</title>
+<meta name="description" content="${attr(desc)}" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Metal Assault" />
+<meta property="og:locale" content="es_ES" />
+<meta property="og:title" content="${attr(title)}" />
+<meta property="og:description" content="${attr(desc)}" />
+<meta property="og:url" content="${attr(origin + '/p/' + id)}" />
+<meta property="og:image" content="${attr(origin + (img || '/logo.jpg'))}" />
+<meta name="twitter:card" content="${img ? 'summary_large_image' : 'summary'}" />
+<meta http-equiv="refresh" content="0; url=${attr(target)}" />
+<link rel="icon" href="/logo.jpg" />
+</head><body style="background:#0b0c10;color:#eef0f4;font-family:system-ui,sans-serif;padding:24px;">
+<p>Abriendo la publicación… <a style="color:#e0b03a" href="${attr(target)}">Toca aquí si no se abre sola</a>.</p>
+<script>location.replace(${JSON.stringify(target)});</script>
+</body></html>`);
+  } catch (e) { next(e); }
+});
+
 /* ---------------- static app (only the public files) ---------------- */
 for (const [route, file] of Object.entries(PUBLIC_FILES)) {
   app.get(route, (req, res) => res.sendFile(path.join(__dirname, file), { maxAge: '1h' }));
@@ -128,8 +176,9 @@ app.get('*', (req, res) => {
 
 app.use((err, req, res, next) => {
   const status = err.status || err.statusCode || 500;
-  if (status >= 500) console.error(err);
-  res.status(status).json({ error: status >= 500 ? 'Error del servidor' : err.message });
+  if (status >= 500 && !err.expose) console.error(err);
+  // messages written for the user (err.expose) are shown as is; unexpected errors stay generic
+  res.status(status).json({ error: status >= 500 && !err.expose ? 'Error del servidor' : err.message });
 });
 
 /* ---------------- start ---------------- */
