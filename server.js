@@ -5,7 +5,7 @@ const { createStore, validateOps, IMAGE_ID_RE } = require('./store');
 
 const PORT = process.env.PORT || 3000;
 const IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-const PUBLIC_FILES = { '/logo.jpg': 'logo.jpg', '/bracket.js': 'bracket.js', '/kraneo3d.js': 'kraneo3d.js' };
+const PUBLIC_FILES = { '/logo.jpg': 'logo.jpg', '/bracket.js': 'bracket.js', '/kraneo3d.js': 'kraneo3d.js', '/kraneo-game.js': 'kraneo-game.js' };
 
 const store = createStore(process.env);
 const app = express();
