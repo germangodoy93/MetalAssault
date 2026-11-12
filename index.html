@@ -1056,9 +1056,15 @@
           </div>
         </div>
         <p class="muted" id="tFormatHint" style="margin:-4px 0 0; font-size:12.5px;"></p>
-        <div>
-          <label for="tDate">Fecha</label>
-          <input id="tDate" type="date" />
+        <div class="field-row">
+          <div>
+            <label for="tDate">Fecha</label>
+            <input id="tDate" type="date" />
+          </div>
+          <div>
+            <label for="tTime">Hora (opcional)</label>
+            <input id="tTime" type="time" step="300" />
+          </div>
         </div>
         <div>
           <label for="tRules">Reglas del torneo</label>
@@ -1562,7 +1568,25 @@
   }
   function fmtDate(iso){
     if(!iso) return '';
-    try{ var d = new Date(iso); return d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}); }catch(e){ return iso; }
+    try{
+      // a bare "YYYY-MM-DD" is a calendar day: read it as local time, not UTC (which shows the day before in America)
+      var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+      var d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(iso);
+      return d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'});
+    }catch(e){ return iso; }
+  }
+  /* "HH:MM" -> "8:00 p. m." */
+  function fmtTime(hhmm){
+    var m = /^(\d{2}):(\d{2})/.exec(hhmm || '');
+    if(!m) return '';
+    try{ return new Date(2000, 0, 1, +m[1], +m[2]).toLocaleTimeString('es-CO', {hour:'numeric', minute:'2-digit'}); }catch(e){ return hhmm; }
+  }
+  /* Date and time of a tournament, for the cards: " · 15 nov 2026 · 8:00 p. m." */
+  function fmtWhen(t){
+    var parts = [];
+    if(t.date) parts.push(fmtDate(t.date));
+    if(t.time) parts.push('🕗 ' + fmtTime(t.time));
+    return parts.length ? ' · ' + parts.join(' · ') : '';
   }
 
   /* ================= DATA LAYER ================= */
@@ -1925,7 +1949,7 @@
     return '<div class="card">' +
       '<div class="between"><h3>' + esc(t.name) + '</h3>' + statusPill(t.status) + '</div>' +
       '<div class="row" style="margin:4px 0 8px;"><span class="pill">' + esc(t.type) + '</span><span class="pill">' + fmtLabel(t.format) + '</span>' + modePill(t) + '</div>' +
-      '<p class="muted">' + count + ' / ' + t.maxPlayers + ' inscritos' + (t.date ? ' · ' + fmtDate(t.date) : '') + '</p>' +
+      '<p class="muted">' + count + ' / ' + t.maxPlayers + ' inscritos' + fmtWhen(t) + '</p>' +
       (t.rules ? '<div class="rules-box">' + esc(t.rules) + '</div>' : '') +
       '</div>';
   }
@@ -1949,7 +1973,7 @@
       return '<div class="card">' +
         '<div class="between"><h3>' + esc(t.name) + '</h3>' + statusPill(t.status) + '</div>' +
         '<div class="row" style="margin:4px 0 8px;"><span class="pill">' + esc(t.type) + '</span><span class="pill">' + fmtLabel(t.format) + '</span>' + modePill(t) + '</div>' +
-        '<p class="muted">' + count + ' / ' + t.maxPlayers + ' inscritos' + (t.date ? ' · ' + fmtDate(t.date) : '') + '</p>' +
+        '<p class="muted">' + count + ' / ' + t.maxPlayers + ' inscritos' + fmtWhen(t) + '</p>' +
         (t.rules ? '<div class="rules-box">' + esc(t.rules) + '</div>' : '<p class="muted">Sin reglas específicas.</p>') +
         '<div class="row" style="margin-top:12px;">' +
           '<button class="btn small admin-only" data-cycle="' + t.id + '">Cambiar estado</button>' +
@@ -2045,6 +2069,7 @@
     document.getElementById('tFormat').value = t.format || 'eliminacion';
     document.getElementById('tMax').value = t.maxPlayers || 8;
     document.getElementById('tDate').value = t.date || '';
+    document.getElementById('tTime').value = t.time || '';
     document.getElementById('tRules').value = t.rules || '';
     document.getElementById('tFormTitle').textContent = 'Editar torneo';
     document.getElementById('tFormHint').textContent = 'Modificando "' + t.name + '". Los cambios no afectan un sorteo ya realizado.';
@@ -2093,6 +2118,7 @@
       format: document.getElementById('tFormat').value,
       maxPlayers: parseInt(document.getElementById('tMax').value, 10) || 8,
       date: document.getElementById('tDate').value,
+      time: document.getElementById('tTime').value,
       rules: document.getElementById('tRules').value.trim()
     };
     if(editId){
@@ -2730,15 +2756,18 @@
       var t = state.tournaments.find(function(x){ return x.id === p.tournamentId; });
       return open(t) ? t : null;
     }
-    return state.tournaments.filter(open).sort(function(a, b){ return (a.date || '9').localeCompare(b.date || '9'); })[0] || null;
+    return state.tournaments.filter(open).sort(function(a, b){
+      return ((a.date || '9') + (a.time || '')).localeCompare((b.date || '9') + (b.time || ''));
+    })[0] || null;
   }
   function registerUrl(t){ return location.origin + '/?inscribir=' + encodeURIComponent(t.id); }
   function shareText(p){
     var body = String(p.body || '').replace(/\s+/g, ' ').trim();
     if(body.length > 220) body = body.slice(0, 219).trim() + '…';
     var t = registerTarget(p);
+    var when = t ? [t.date ? fmtDate(t.date) : '', t.time ? fmtTime(t.time) : ''].filter(Boolean).join(' · ') : '';
     return '*' + String(p.title || '').trim() + '*\n\n' + (body ? body + '\n\n' : '') + '👉 ' + postUrl(p) +
-      (t ? '\n\n📝 Inscríbete en ' + t.name + ': ' + registerUrl(t) : '');
+      (t ? '\n\n📝 Inscríbete en ' + t.name + (when ? ' (' + when + ')' : '') + ': ' + registerUrl(t) : '');
   }
   /* Opens Registro with that tournament selected, ready to type the nickname. */
   function goRegister(tid){
